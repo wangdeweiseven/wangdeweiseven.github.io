@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>css那些事</title>
-    <url>/2025/03/28/css%E9%82%A3%E4%BA%9B%E4%BA%8B/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-      </categories>
-  </entry>
-  <entry>
     <title>React项目中Markdown集成完整指南</title>
     <url>/2025/03/25/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/</url>
     <content><![CDATA[<h2 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a>推荐方案</h2><blockquote>
@@ -129,9 +120,109 @@
         <category>前端</category>
       </categories>
       <tags>
-        <tag>React</tag>
         <tag>Markdown</tag>
-        <tag>前端工程化</tag>
+        <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>css那些事</title>
+    <url>/2025/03/28/css%E9%82%A3%E4%BA%9B%E4%BA%8B/</url>
+    <content><![CDATA[<h2 id="CSS-盒模型详解"><a href="#CSS-盒模型详解" class="headerlink" title="CSS 盒模型详解"></a>CSS 盒模型详解</h2><p>CSS 盒模型（Box Model）是网页布局的基础，定义了元素在页面中占据的空间。一个盒子由以下四部分组成：</p>
+<h3 id="1-内容区（Content）"><a href="#1-内容区（Content）" class="headerlink" title="1. 内容区（Content）"></a>1. 内容区（Content）</h3><ul>
+<li>显示文本、图片等实际内容。</li>
+<li>大小由 <code>width</code> 和 <code>height</code> 控制。</li>
+</ul>
+<h3 id="2-内边距（Padding）"><a href="#2-内边距（Padding）" class="headerlink" title="2. 内边距（Padding）"></a>2. 内边距（Padding）</h3><ul>
+<li>内容与边框之间的透明区域。</li>
+<li>通过 <code>padding-top</code>、<code>padding-right</code> 等属性设置。</li>
+</ul>
+<h3 id="3-边框（Border）"><a href="#3-边框（Border）" class="headerlink" title="3. 边框（Border）"></a>3. 边框（Border）</h3><ul>
+<li>围绕内容和内边距的边界线。</li>
+<li>通过 <code>border-width</code>、<code>border-style</code> 等属性设置。</li>
+</ul>
+<h3 id="4-外边距（Margin）"><a href="#4-外边距（Margin）" class="headerlink" title="4. 外边距（Margin）"></a>4. 外边距（Margin）</h3><ul>
+<li>盒子与其他元素之间的透明区域。</li>
+<li>通过 <code>margin-top</code>、<code>margin-right</code> 等属性设置。</li>
+</ul>
+<hr>
+<h3 id="标准盒模型-vs-怪异盒模型"><a href="#标准盒模型-vs-怪异盒模型" class="headerlink" title="标准盒模型 vs 怪异盒模型"></a>标准盒模型 vs 怪异盒模型</h3><ul>
+<li><p><strong>标准盒模型（<code>box-sizing: content-box</code>）</strong></p>
+<ul>
+<li><code>width</code> 和 <code>height</code> 仅控制内容区大小。</li>
+<li>总宽度 &#x3D; <code>width</code> + <code>padding</code> + <code>border</code> + <code>margin</code>。</li>
+</ul>
+</li>
+<li><p><strong>怪异盒模型（<code>box-sizing: border-box</code>）</strong></p>
+<ul>
+<li><code>width</code> 和 <code>height</code> 包含内容、内边距和边框。</li>
+<li>总宽度 &#x3D; <code>width</code>（含 <code>padding</code> 和 <code>border</code>） + <code>margin</code>。</li>
+<li>推荐使用：<figure class="highlight css"><table><tr><td class="code"><pre><span class="line">* &#123;</span><br><span class="line">  <span class="attribute">box-sizing</span>: border-box;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="BFC（块级格式化上下文）详解"><a href="#BFC（块级格式化上下文）详解" class="headerlink" title="BFC（块级格式化上下文）详解"></a>BFC（块级格式化上下文）详解</h2><p>BFC（Block Formatting Context）是 CSS 渲染的一块独立区域，内部元素不会影响外部布局。</p>
+<h3 id="触发-BFC-的条件"><a href="#触发-BFC-的条件" class="headerlink" title="触发 BFC 的条件"></a>触发 BFC 的条件</h3><p>以下属性可以触发 BFC：</p>
+<ul>
+<li><code>float: left/right</code>（不为 <code>none</code>）</li>
+<li><code>position: absolute/fixed</code></li>
+<li><code>display: inline-block/table-cell/flex</code></li>
+<li><code>overflow: hidden/auto/scroll</code>（不为 <code>visible</code>）</li>
+</ul>
+<hr>
+<h3 id="BFC-的特性"><a href="#BFC-的特性" class="headerlink" title="BFC 的特性"></a>BFC 的特性</h3><ol>
+<li><p><strong>阻止外边距重叠（Margin Collapse）</strong></p>
+<ul>
+<li>普通流中相邻垂直外边距会合并（取最大值）。</li>
+<li>BFC 内的元素与外部元素不会发生外边距重叠。</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;bfc&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;margin: 20px;&quot;</span>&gt;</span>A<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;margin: 20px;&quot;</span>&gt;</span>B<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>包含浮动元素</p>
+<ul>
+<li>父元素未设置高度时，子元素浮动会导致父元素高度塌陷。</li>
+<li>触发 BFC 后，父元素会包裹浮动子元素。</li>
+</ul>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.parent</span> &#123;</span><br><span class="line">  <span class="attribute">overflow</span>: hidden;</span><br><span class="line">&#125; <span class="comment">/* 触发 BFC */</span></span><br><span class="line"><span class="selector-class">.child</span> &#123;</span><br><span class="line">  <span class="attribute">float</span>: left;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>阻止元素被浮动覆盖</p>
+<ul>
+<li>BFC 区域不会与浮动元素重叠。</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;float: left; width: 100px;&quot;</span>&gt;</span>浮动元素<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;overflow: hidden;&quot;</span>&gt;</span>BFC 元素<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>盒模型</th>
+<th>BFC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用</td>
+<td>定义元素空间占用</td>
+<td>创建独立布局环境</td>
+</tr>
+<tr>
+<td>核心问题</td>
+<td>计算实际宽高</td>
+<td>解决外边距重叠、浮动塌陷等问题</td>
+</tr>
+<tr>
+<td>常用属性</td>
+<td><code>width</code>, <code>padding</code>, <code>border</code></td>
+<td><code>overflow</code>, <code>float</code>, <code>position</code></td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
       </tags>
   </entry>
   <entry>
