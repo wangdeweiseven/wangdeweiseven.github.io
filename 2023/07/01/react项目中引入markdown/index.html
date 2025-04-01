@@ -22,22 +22,22 @@
     <meta name="description" content="推荐方案 如果你需要完整的 Markdown 渲染功能，推荐使用 react-markdown + remark-gfm + react-syntax-highlighter 组合。如果需要编辑器功能，可以使用 react-md-editor 。  1. react-markdown 功能: 将 Markdown 转换为 React 组件  1npm install react-markdown">
 <meta property="og:type" content="article">
 <meta property="og:title" content="React项目中Markdown集成完整指南">
-<meta property="og:url" content="http://example.com/2022/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/index.html">
+<meta property="og:url" content="http://example.com/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/index.html">
 <meta property="og:site_name" content="前端那些事">
 <meta property="og:description" content="推荐方案 如果你需要完整的 Markdown 渲染功能，推荐使用 react-markdown + remark-gfm + react-syntax-highlighter 组合。如果需要编辑器功能，可以使用 react-md-editor 。  1. react-markdown 功能: 将 Markdown 转换为 React 组件  1npm install react-markdown">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-06-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-03-29T01:48:51.896Z">
+<meta property="article:published_time" content="2023-06-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-04-01T12:06:44.911Z">
 <meta property="article:author" content="wdw">
 <meta property="article:tag" content="前端">
 <meta property="article:tag" content="React">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2022/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/">
+<link rel="canonical" href="http://example.com/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/","path":"2022/07/01/react项目中引入markdown/","title":"React项目中Markdown集成完整指南"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/","path":"2023/07/01/react项目中引入markdown/","title":"React项目中Markdown集成完整指南"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>React项目中Markdown集成完整指南 | 前端那些事</title>
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="nav-number">1.</span> <span class="nav-text">推荐方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-react-markdown"><span class="nav-number">1.1.</span> <span class="nav-text">1. react-markdown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-remark-gfm"><span class="nav-number">1.2.</span> <span class="nav-text">2. remark-gfm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-react-syntax-highlighter"><span class="nav-number">1.3.</span> <span class="nav-text">3. react-syntax-highlighter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-markdown-to-jsx"><span class="nav-number">1.4.</span> <span class="nav-text">4. markdown-to-jsx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-react-md-editor"><span class="nav-number">1.5.</span> <span class="nav-text">5. react-md-editor</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-Markdown-%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">配置 Markdown 解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%9B%AE%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">自动生成目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B7%E5%BC%8F%E4%BC%98%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">样式优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B"><span class="nav-number">5.</span> <span class="nav-text">完整实现示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vite-%E9%A1%B9%E7%9B%AE%E5%8A%A0%E8%BD%BD-md-%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F"><span class="nav-number">6.</span> <span class="nav-text">vite 项目加载 md 文件的两种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8-import-%E5%BC%95%E7%94%A8-%E6%8E%A8%E8%8D%90%EF%BC%8C%E6%80%A7%E8%83%BD%E5%A5%BD"><span class="nav-number">6.1.</span> <span class="nav-text">1. 使用 import 引用 (推荐，性能好)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8-fetch-%E8%AF%B7%E6%B1%82%E3%80%91"><span class="nav-number">6.2.</span> <span class="nav-text">2. 使用 fetch 请求】</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-number">7.</span> <span class="nav-text">最佳实践建议</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="nav-number">1.</span> <span class="nav-text">推荐方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-react-markdown"><span class="nav-number">1.1.</span> <span class="nav-text">1. react-markdown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-remark-gfm"><span class="nav-number">1.2.</span> <span class="nav-text">2. remark-gfm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-react-syntax-highlighter"><span class="nav-number">1.3.</span> <span class="nav-text">3. react-syntax-highlighter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-markdown-to-jsx"><span class="nav-number">1.4.</span> <span class="nav-text">4. markdown-to-jsx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-react-md-editor"><span class="nav-number">1.5.</span> <span class="nav-text">5. react-md-editor</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-Markdown-%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">配置 Markdown 解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90%E7%9B%AE%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">自动生成目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B7%E5%BC%8F%E4%BC%98%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">样式优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B"><span class="nav-number">5.</span> <span class="nav-text">完整实现示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vite-%E9%A1%B9%E7%9B%AE%E5%8A%A0%E8%BD%BD-md-%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F"><span class="nav-number">6.</span> <span class="nav-text">vite 项目加载 md 文件的两种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8-import-%E5%BC%95%E7%94%A8-%E6%8E%A8%E8%8D%90%EF%BC%8C%E6%80%A7%E8%83%BD%E5%A5%BD"><span class="nav-number">6.1.</span> <span class="nav-text">1. 使用 import 引用 (推荐，性能好)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8-fetch-%E8%AF%B7%E6%B1%82"><span class="nav-number">6.2.</span> <span class="nav-text">2. 使用 fetch 请求</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-number">7.</span> <span class="nav-text">最佳实践建议</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -152,7 +152,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -198,7 +198,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -227,14 +227,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2022-07-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-01T00:00:00+08:00">2022-07-01</time>
+      <time title="创建时间：2023-07-01 00:00:00" itemprop="dateCreated datePublished" datetime="2023-07-01T00:00:00+08:00">2023-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-29 09:48:51" itemprop="dateModified" datetime="2025-03-29T09:48:51+08:00">2025-03-29</time>
+      <time title="修改时间：2025-04-01 20:06:44" itemprop="dateModified" datetime="2025-04-01T20:06:44+08:00">2025-04-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -353,7 +353,7 @@
 <li><p>相比 fetch 请求，性能更好，因为文件内容会被打包进 JavaScript 文件中<br>注意：需要确保 vite.config.js 中配置了正确的路径别名和 Markdown 文件处理：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">resolve</span>: &#123;</span><br><span class="line">    <span class="attr">alias</span>: &#123;</span><br><span class="line">      <span class="string">&quot;@&quot;</span>: <span class="string">&quot;/src&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">assetsInclude</span>: [<span class="string">&quot;**/*.md&quot;</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-使用-fetch-请求】"><a href="#2-使用-fetch-请求】" class="headerlink" title="2. 使用 fetch 请求】"></a>2. 使用 fetch 请求】</h3></li>
+<h3 id="2-使用-fetch-请求"><a href="#2-使用-fetch-请求" class="headerlink" title="2. 使用 fetch 请求"></a>2. 使用 fetch 请求</h3></li>
 </ul>
 <figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> [markdownContent, setMarkdownContent] = <span class="title function_">useState</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> [isLoading, setLoading] = <span class="title function_">useState</span>(<span class="literal">false</span>);</span><br><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">fetch</span>(</span><br><span class="line">    <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">PROD</span></span><br><span class="line">      ? <span class="string">`<span class="subst">$&#123;<span class="keyword">import</span>.meta.env.BASE_URL&#125;</span>/interview-notes.md`</span></span><br><span class="line">      : <span class="string">&quot;/interview-notes.md&quot;</span></span><br><span class="line">  )</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> response.<span class="title function_">text</span>())</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">text</span>) =&gt;</span> <span class="title function_">setMarkdownContent</span>(text))</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="title function_">setLoading</span>(<span class="literal">false</span>));</span><br><span class="line">  s;</span><br><span class="line">&#125;, []);</span><br></pre></td></tr></table></figure>
 
@@ -391,14 +391,11 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2022/06/26/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/" rel="prev" title="学习目录">
-                  <i class="fa fa-angle-left"></i> 学习目录
+                <a href="/2022/07/03/css%E9%82%A3%E4%BA%9B%E4%BA%8B/" rel="prev" title="css那些事">
+                  <i class="fa fa-angle-left"></i> css那些事
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2022/07/03/css%E9%82%A3%E4%BA%9B%E4%BA%8B/" rel="next" title="css那些事">
-                  css那些事 <i class="fa fa-angle-right"></i>
-                </a>
             </div>
           </div>
     </footer>
