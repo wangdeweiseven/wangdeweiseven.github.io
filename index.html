@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -396,6 +396,220 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">Web安全必修课-Cookie的食用指南 🍪</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-07-06 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-06T00:00:00+08:00">2022-07-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-08 17:39:15" itemprop="dateModified" datetime="2025-04-08T17:39:15+08:00">2025-04-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/Web%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Web安全</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
+<hr>
+<h2 id="二、Cookie-的原料配方表"><a href="#二、Cookie-的原料配方表" class="headerlink" title="二、Cookie 的原料配方表"></a>二、Cookie 的原料配方表</h2><p>每个 Cookie 都包含这些核心配料：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;username=JohnDoe;</span></span><br><span class="line"><span class="string">                  expires=Fri, 31 Dec 2023 23:59:59 GMT;</span></span><br><span class="line"><span class="string">                  path=/;</span></span><br><span class="line"><span class="string">                  domain=.example.com;</span></span><br><span class="line"><span class="string">                  Secure;</span></span><br><span class="line"><span class="string">                  HttpOnly;</span></span><br><span class="line"><span class="string">                  SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>配料名</th>
+<th>作用说明</th>
+<th>类比解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key&#x3D;value</td>
+<td>存储的键值对</td>
+<td>储物柜编号+存放物品</td>
+</tr>
+<tr>
+<td>Expires</td>
+<td>过期时间（日期格式）</td>
+<td>小票有效期</td>
+</tr>
+<tr>
+<td>Max-Age</td>
+<td>存活秒数（优先级更高）</td>
+<td>倒计时自毁装置</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td>生效域名</td>
+<td>连锁超市分店通用券</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>URL 路径限制</td>
+<td>仅限二楼储物区使用</td>
+</tr>
+<tr>
+<td>Secure</td>
+<td>仅 HTTPS 传输</td>
+<td>防窃听加密传输</td>
+</tr>
+<tr>
+<td>HttpOnly</td>
+<td>禁止 JS 访问</td>
+<td>储物柜管理员专属钥匙</td>
+</tr>
+<tr>
+<td>SameSite</td>
+<td>跨站发送限制</td>
+<td>防止其他商店冒领的安检</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、前端厨房实操手册"><a href="#三、前端厨房实操手册" class="headerlink" title="三、前端厨房实操手册"></a>三、前端厨房实操手册</h2><h3 id="3-1-烤制新鲜-Cookie"><a href="#3-1-烤制新鲜-Cookie" class="headerlink" title="3.1 烤制新鲜 Cookie"></a>3.1 烤制新鲜 Cookie</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 基础款曲奇</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;theme=dark&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 豪华定制版</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bakeCookie</span>(<span class="params">name, value, days</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> date = <span class="keyword">new</span> <span class="title class_">Date</span>();</span><br><span class="line">  date.<span class="title function_">setTime</span>(date.<span class="title function_">getTime</span>() + days * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">`<span class="subst">$&#123;name&#125;</span>=<span class="subst">$&#123;value&#125;</span>; </span></span><br><span class="line"><span class="string">                    expires=<span class="subst">$&#123;date.toUTCString()&#125;</span>; </span></span><br><span class="line"><span class="string">                    path=/`</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现烤一个7天过期的饼干</span></span><br><span class="line"><span class="title function_">bakeCookie</span>(<span class="string">&quot;user_token&quot;</span>, <span class="string">&quot;abc123&quot;</span>, <span class="number">7</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-品尝-Cookie-的味道"><a href="#3-2-品尝-Cookie-的味道" class="headerlink" title="3.2 品尝 Cookie 的味道"></a>3.2 品尝 Cookie 的味道</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 读取整盒饼干</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>);</span><br><span class="line"><span class="comment">// 输出：&quot;theme=dark; user_token=abc123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 找出特定饼干</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getCookie</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">document</span>.<span class="property">cookie</span></span><br><span class="line">    .<span class="title function_">split</span>(<span class="string">&quot;; &quot;</span>)</span><br><span class="line">    .<span class="title function_">find</span>(<span class="function">(<span class="params">row</span>) =&gt;</span> row.<span class="title function_">startsWith</span>(<span class="string">`<span class="subst">$&#123;name&#125;</span>=`</span>))</span><br><span class="line">    ?.<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>)[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title function_">getCookie</span>(<span class="string">&quot;theme&quot;</span>)); <span class="comment">// 输出：dark</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-处理过期饼干"><a href="#3-3-处理过期饼干" class="headerlink" title="3.3 处理过期饼干"></a>3.3 处理过期饼干</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 让饼干立即过期</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;user_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、食用安全须知-⚠️"><a href="#四、食用安全须知-⚠️" class="headerlink" title="四、食用安全须知 ⚠️"></a>四、食用安全须知 ⚠️</h2><ol>
+<li><p>容量警报</p>
+<ul>
+<li>单个 Cookie ≤ 4KB</li>
+<li>单域名 ≤ 20 个 Cookie（各浏览器不同）</li>
+</ul>
+</li>
+<li><p>XSS 防御<br>敏感 Cookie 务必添加 HttpOnly 属性，就像把贵重物品锁进保险柜</p>
+</li>
+<li><p>CSRF 防护<br>使用 SameSite&#x3D;Strict&#x2F;Lax，相当于给储物柜加指纹锁</p>
+</li>
+<li><p>敏感信息禁区 s<br>❌ 永远不要在 Cookie 中存储：</p>
+<ul>
+<li>用户密码</li>
+<li>信用卡号</li>
+<li>JWT 令牌的裸奔版本</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="五、什么时候该换零食？🍪-↔️-🥡"><a href="#五、什么时候该换零食？🍪-↔️-🥡" class="headerlink" title="五、什么时候该换零食？🍪 ↔️ 🥡"></a>五、什么时候该换零食？🍪 ↔️ 🥡</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Cookie</th>
+<th>Web Storage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要自动过期</td>
+<td>✅ 原生支持</td>
+<td>❌ 需手动清除</td>
+</tr>
+<tr>
+<td>需要服务端读取</td>
+<td>✅ 自动携带</td>
+<td>❌ 需主动发送</td>
+</tr>
+<tr>
+<td>存储大量数据</td>
+<td>❌ 容量小</td>
+<td>✅ 5MB+</td>
+</tr>
+<tr>
+<td>敏感操作验证</td>
+<td>✅ HttpOnly 防护</td>
+<td>❌ 暴露在 JS 环境</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、最佳食用姿势-✨"><a href="#六、最佳食用姿势-✨" class="headerlink" title="六、最佳食用姿势 ✨"></a>六、最佳食用姿势 ✨</h2><ul>
+<li>给 Cookie 穿上 HTTPS 的防弹衣（Secure 属性）</li>
+<li>像对待密码一样设置 HttpOnly</li>
+<li>使用编码处理特殊字符：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">encodeURIComponent</span>(<span class="string">&quot;user=张三&amp;age=20&quot;</span>);</span><br><span class="line"><span class="comment">// → &quot;user%3D%E5%BC%A0%E4%B8%89%26age%3D20&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>定期检查 Cookie 的有效期，就像查看食品保质期</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/05/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-XSS%E4%B8%8ECSRF%E6%94%BB%E5%87%BB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -432,7 +646,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-08 11:43:03" itemprop="dateModified" datetime="2025-04-08T11:43:03+08:00">2025-04-08</time>
+      <time title="修改时间：2025-04-08 17:25:11" itemprop="dateModified" datetime="2025-04-08T17:25:11+08:00">2025-04-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -490,13 +704,33 @@
 
 <h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="3-内容安全策略（CSP）"><a href="#3-内容安全策略（CSP）" class="headerlink" title="3. 内容安全策略（CSP）"></a>3. 内容安全策略（CSP）</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com;</span><br><span class="line">  img-src *;</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;;</span><br></pre></td></tr></table></figure>
+<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
+<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
+</blockquote>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
 
-<h4 id="4-HttpOnly-Cooki"><a href="#4-HttpOnly-Cooki" class="headerlink" title="4. HttpOnly Cooki"></a>4. HttpOnly Cooki</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="二、CSRF-攻击（跨站请求伪造"><a href="#二、CSRF-攻击（跨站请求伪造" class="headerlink" title="二、CSRF 攻击（跨站请求伪造"></a>二、CSRF 攻击（跨站请求伪造</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
+<ul>
+<li><p>HttpOnly - 重要安全属性，作用是：</p>
+<ul>
+<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
+<li>有效防范 XSS 攻击窃取 Cookie</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Secure - 安全传输属性，作用是：</p>
+<ul>
+<li>该 Cookie 只能通过 HTTPS 协议传输</li>
+<li>防止在 HTTP 明文传输中被窃听</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>

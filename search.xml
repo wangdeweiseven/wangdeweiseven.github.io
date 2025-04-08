@@ -154,13 +154,33 @@
 
 <h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="3-内容安全策略（CSP）"><a href="#3-内容安全策略（CSP）" class="headerlink" title="3. 内容安全策略（CSP）"></a>3. 内容安全策略（CSP）</h4><figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com;</span><br><span class="line">  img-src *;</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;;</span><br></pre></td></tr></table></figure>
+<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
+<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
+</blockquote>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
 
-<h4 id="4-HttpOnly-Cooki"><a href="#4-HttpOnly-Cooki" class="headerlink" title="4. HttpOnly Cooki"></a>4. HttpOnly Cooki</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="二、CSRF-攻击（跨站请求伪造"><a href="#二、CSRF-攻击（跨站请求伪造" class="headerlink" title="二、CSRF 攻击（跨站请求伪造"></a>二、CSRF 攻击（跨站请求伪造</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
+<ul>
+<li><p>HttpOnly - 重要安全属性，作用是：</p>
+<ul>
+<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
+<li>有效防范 XSS 攻击窃取 Cookie</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Secure - 安全传输属性，作用是：</p>
+<ul>
+<li>该 Cookie 只能通过 HTTPS 协议传输</li>
+<li>防止在 HTTP 明文传输中被窃听</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>
@@ -232,6 +252,143 @@
         <tag>前端</tag>
         <tag>Web安全</tag>
         <tag>XSS与CSRF攻击</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web安全必修课-Cookie的食用指南 🍪</title>
+    <url>/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/</url>
+    <content><![CDATA[<h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
+<hr>
+<h2 id="二、Cookie-的原料配方表"><a href="#二、Cookie-的原料配方表" class="headerlink" title="二、Cookie 的原料配方表"></a>二、Cookie 的原料配方表</h2><p>每个 Cookie 都包含这些核心配料：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;username=JohnDoe;</span></span><br><span class="line"><span class="string">                  expires=Fri, 31 Dec 2023 23:59:59 GMT;</span></span><br><span class="line"><span class="string">                  path=/;</span></span><br><span class="line"><span class="string">                  domain=.example.com;</span></span><br><span class="line"><span class="string">                  Secure;</span></span><br><span class="line"><span class="string">                  HttpOnly;</span></span><br><span class="line"><span class="string">                  SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>配料名</th>
+<th>作用说明</th>
+<th>类比解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key&#x3D;value</td>
+<td>存储的键值对</td>
+<td>储物柜编号+存放物品</td>
+</tr>
+<tr>
+<td>Expires</td>
+<td>过期时间（日期格式）</td>
+<td>小票有效期</td>
+</tr>
+<tr>
+<td>Max-Age</td>
+<td>存活秒数（优先级更高）</td>
+<td>倒计时自毁装置</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td>生效域名</td>
+<td>连锁超市分店通用券</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>URL 路径限制</td>
+<td>仅限二楼储物区使用</td>
+</tr>
+<tr>
+<td>Secure</td>
+<td>仅 HTTPS 传输</td>
+<td>防窃听加密传输</td>
+</tr>
+<tr>
+<td>HttpOnly</td>
+<td>禁止 JS 访问</td>
+<td>储物柜管理员专属钥匙</td>
+</tr>
+<tr>
+<td>SameSite</td>
+<td>跨站发送限制</td>
+<td>防止其他商店冒领的安检</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、前端厨房实操手册"><a href="#三、前端厨房实操手册" class="headerlink" title="三、前端厨房实操手册"></a>三、前端厨房实操手册</h2><h3 id="3-1-烤制新鲜-Cookie"><a href="#3-1-烤制新鲜-Cookie" class="headerlink" title="3.1 烤制新鲜 Cookie"></a>3.1 烤制新鲜 Cookie</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基础款曲奇</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;theme=dark&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 豪华定制版</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bakeCookie</span>(<span class="params">name, value, days</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> date = <span class="keyword">new</span> <span class="title class_">Date</span>();</span><br><span class="line">  date.<span class="title function_">setTime</span>(date.<span class="title function_">getTime</span>() + days * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">`<span class="subst">$&#123;name&#125;</span>=<span class="subst">$&#123;value&#125;</span>; </span></span><br><span class="line"><span class="string">                    expires=<span class="subst">$&#123;date.toUTCString()&#125;</span>; </span></span><br><span class="line"><span class="string">                    path=/`</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现烤一个7天过期的饼干</span></span><br><span class="line"><span class="title function_">bakeCookie</span>(<span class="string">&quot;user_token&quot;</span>, <span class="string">&quot;abc123&quot;</span>, <span class="number">7</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-品尝-Cookie-的味道"><a href="#3-2-品尝-Cookie-的味道" class="headerlink" title="3.2 品尝 Cookie 的味道"></a>3.2 品尝 Cookie 的味道</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 读取整盒饼干</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>);</span><br><span class="line"><span class="comment">// 输出：&quot;theme=dark; user_token=abc123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 找出特定饼干</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getCookie</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">document</span>.<span class="property">cookie</span></span><br><span class="line">    .<span class="title function_">split</span>(<span class="string">&quot;; &quot;</span>)</span><br><span class="line">    .<span class="title function_">find</span>(<span class="function">(<span class="params">row</span>) =&gt;</span> row.<span class="title function_">startsWith</span>(<span class="string">`<span class="subst">$&#123;name&#125;</span>=`</span>))</span><br><span class="line">    ?.<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>)[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title function_">getCookie</span>(<span class="string">&quot;theme&quot;</span>)); <span class="comment">// 输出：dark</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-处理过期饼干"><a href="#3-3-处理过期饼干" class="headerlink" title="3.3 处理过期饼干"></a>3.3 处理过期饼干</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 让饼干立即过期</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;user_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、食用安全须知-⚠️"><a href="#四、食用安全须知-⚠️" class="headerlink" title="四、食用安全须知 ⚠️"></a>四、食用安全须知 ⚠️</h2><ol>
+<li><p>容量警报</p>
+<ul>
+<li>单个 Cookie ≤ 4KB</li>
+<li>单域名 ≤ 20 个 Cookie（各浏览器不同）</li>
+</ul>
+</li>
+<li><p>XSS 防御<br>敏感 Cookie 务必添加 HttpOnly 属性，就像把贵重物品锁进保险柜</p>
+</li>
+<li><p>CSRF 防护<br>使用 SameSite&#x3D;Strict&#x2F;Lax，相当于给储物柜加指纹锁</p>
+</li>
+<li><p>敏感信息禁区 s<br>❌ 永远不要在 Cookie 中存储：</p>
+<ul>
+<li>用户密码</li>
+<li>信用卡号</li>
+<li>JWT 令牌的裸奔版本</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="五、什么时候该换零食？🍪-↔️-🥡"><a href="#五、什么时候该换零食？🍪-↔️-🥡" class="headerlink" title="五、什么时候该换零食？🍪 ↔️ 🥡"></a>五、什么时候该换零食？🍪 ↔️ 🥡</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Cookie</th>
+<th>Web Storage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要自动过期</td>
+<td>✅ 原生支持</td>
+<td>❌ 需手动清除</td>
+</tr>
+<tr>
+<td>需要服务端读取</td>
+<td>✅ 自动携带</td>
+<td>❌ 需主动发送</td>
+</tr>
+<tr>
+<td>存储大量数据</td>
+<td>❌ 容量小</td>
+<td>✅ 5MB+</td>
+</tr>
+<tr>
+<td>敏感操作验证</td>
+<td>✅ HttpOnly 防护</td>
+<td>❌ 暴露在 JS 环境</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、最佳食用姿势-✨"><a href="#六、最佳食用姿势-✨" class="headerlink" title="六、最佳食用姿势 ✨"></a>六、最佳食用姿势 ✨</h2><ul>
+<li>给 Cookie 穿上 HTTPS 的防弹衣（Secure 属性）</li>
+<li>像对待密码一样设置 HttpOnly</li>
+<li>使用编码处理特殊字符：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">encodeURIComponent</span>(<span class="string">&quot;user=张三&amp;age=20&quot;</span>);</span><br><span class="line"><span class="comment">// → &quot;user%3D%E5%BC%A0%E4%B8%89%26age%3D20&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>定期检查 Cookie 的有效期，就像查看食品保质期</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Web安全</tag>
+        <tag>cookie的食用指南</tag>
       </tags>
   </entry>
   <entry>
@@ -717,6 +874,402 @@
       </tags>
   </entry>
   <entry>
+    <title>浏览器原生请求对象</title>
+    <url>/2022/07/03/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%8E%9F%E7%94%9F%E8%AF%B7%E6%B1%82%E5%AF%B9%E8%B1%A1/</url>
+    <content><![CDATA[<h1 id="前端请求技术全景：从原生-API-到框架最佳实践"><a href="#前端请求技术全景：从原生-API-到框架最佳实践" class="headerlink" title="前端请求技术全景：从原生 API 到框架最佳实践"></a>前端请求技术全景：从原生 API 到框架最佳实践</h1><h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>前端请求技术经历了三个阶段演进：</p>
+<ol>
+<li><strong>XMLHttpRequest 时代</strong>（2005）：首个异步请求 API，催生 Ajax 革命</li>
+<li><strong>Fetch API 时代</strong>（2015）：基于 Promise 的现代化方案</li>
+<li><strong>封装库时代</strong>：axios 等库填补原生 API 的易用性缺口</li>
+</ol>
+<p>现代 Web 应用平均发起 50+次请求，请求处理能力直接影响用户体验和核心业务指标。</p>
+<hr>
+<h2 id="2-原生-API-详解"><a href="#2-原生-API-详解" class="headerlink" title="2. 原生 API 详解"></a>2. 原生 API 详解</h2><h3 id="XHR-vs-Fetch-核心对比"><a href="#XHR-vs-Fetch-核心对比" class="headerlink" title="XHR vs Fetch 核心对比"></a>XHR vs Fetch 核心对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>XHR</th>
+<th>Fetch</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>异步模型</td>
+<td>回调机制</td>
+<td>Promise</td>
+</tr>
+<tr>
+<td>请求终止</td>
+<td>xhr.abort()</td>
+<td>AbortController</td>
+</tr>
+<tr>
+<td>进度监控</td>
+<td>progress 事件</td>
+<td>不可直接支持</td>
+</tr>
+<tr>
+<td>超时设置</td>
+<td>timeout 属性</td>
+<td>需手动封装</td>
+</tr>
+<tr>
+<td>CORS 处理</td>
+<td>需 withCredentials</td>
+<td>credentials 参数</td>
+</tr>
+</tbody></table>
+<h3 id="XHR-示例"><a href="#XHR-示例" class="headerlink" title="XHR 示例"></a>XHR 示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 简单实现ajax s</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> url = <span class="string">&quot;xxxxxxxxxxxx&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="variable constant_">XHR</span> = <span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// XHR 支持同步请求（ open 方法的第三个参数设为 false ），但会阻塞 UI 线程，通常不推荐使用。</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>, url, <span class="literal">true</span>);</span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">send</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/** readyState</span></span><br><span class="line"><span class="comment"> * 0(UNSENT): 请求未初始化 (open()方法未被调用)</span></span><br><span class="line"><span class="comment"> * 1(OPEND): 服务器连接已建立 (open()方法已被调用, send() 还未调用)</span></span><br><span class="line"><span class="comment"> * 2(HEADER_RECEIVED): 请求已接收 (send()方法已被调用,且响应头和状态码已收到)</span></span><br><span class="line"><span class="comment"> * 3(LOADING): 请求处理中,正在接收响应体，此时 responseText 属性可能包含部分数据</span></span><br><span class="line"><span class="comment"> * 4(DONE): 请求已完成，且响应已就绪 (响应数据已完全接收或请求失败)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 检查XMLHttpRequest对象的状态和响应状态码</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable constant_">XHR</span>.<span class="property">readyState</span> == <span class="number">4</span> &amp;&amp; <span class="variable constant_">XHR</span>.<span class="property">status</span> == <span class="number">200</span>) &#123;</span><br><span class="line">    <span class="comment">// 当请求已完成（readyState为4）且响应状态码为200（成功）时执行以下代码</span></span><br><span class="line">    <span class="comment">// 将响应文本解析为JSON对象</span></span><br><span class="line">    result = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable constant_">XHR</span>.<span class="property">responseText</span>);</span><br><span class="line">    <span class="comment">// 将解析后的结果输出到控制台</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Fetch-示例：带超时的-GET-请求"><a href="#Fetch-示例：带超时的-GET-请求" class="headerlink" title="Fetch 示例：带超时的 GET 请求"></a>Fetch 示例：带超时的 GET 请求</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>(), <span class="number">5000</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">signal</span>: controller.<span class="property">signal</span>,</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err.<span class="property">name</span> === <span class="string">&quot;AbortError&quot;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求超时&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-封装库分析：axios-核心优势"><a href="#3-封装库分析：axios-核心优势" class="headerlink" title="3. 封装库分析：axios 核心优势"></a>3. 封装库分析：axios 核心优势</h2><h3 id="核心能力矩阵"><a href="#核心能力矩阵" class="headerlink" title="核心能力矩阵"></a>核心能力矩阵</h3><ol>
+<li>拦截器系统</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求拦截器 - 在请求发送前执行</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 修改请求配置对象，添加 Authorization 请求头</span></span><br><span class="line">  config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="title function_">getToken</span>();</span><br><span class="line">  <span class="comment">// 必须返回修改后的配置对象</span></span><br><span class="line">  <span class="keyword">return</span> config;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应拦截器 - 在响应返回后执行</span></span><br><span class="line"><span class="comment">// normalizeData 和 handleApiErrord 是自定义的处理函数</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="comment">// 第一个函数处理成功响应 (状态码 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">response</span>) =&gt;</span> <span class="title function_">normalizeData</span>(response.<span class="property">data</span>),</span><br><span class="line">  <span class="comment">// 第二个函数处理错误响应 (状态码非 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> <span class="title function_">handleApiError</span>(error)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>关键点说明：</p>
+<ol>
+<li><p>请求拦截器 ：</p>
+<ul>
+<li>通过 axios.interceptors.request.use() 注册</li>
+<li>每次发送请求前自动执行</li>
+<li>典型用途：添加认证头、设置公共参数、修改请求配置</li>
+<li>示例中自动添加了 Authorization 头，值来自 getToken() 函数</li>
+</ul>
+</li>
+<li><p>响应拦截器 ：</p>
+<ul>
+<li>通过 axios.interceptors.response.use() 注册</li>
+<li>接收两个回调函数：成功回调和错误回调</li>
+<li>成功时：对响应数据进行标准化处理 ( normalizeData )</li>
+<li>错误时：统一错误处理 ( handleApiError )</li>
+</ul>
+</li>
+<li><p>拦截器链 ：</p>
+<ul>
+<li>可以注册多个拦截器，按注册顺序形成处理链</li>
+<li>请求拦截器：后注册的先执行</li>
+<li>响应拦截器：先注册的先执行<br>这种设计实现了请求&#x2F;响应的统一处理，避免了在每个请求中重复相同的逻辑。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<ol start="2">
+<li>取消请求（CancelToken 已弃用，推荐 AbortController）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 AbortController 实例</span></span><br><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 发起 GET 请求，将 controller 的 signal 传入请求配置</span></span><br><span class="line">axios</span><br><span class="line">  .<span class="title function_">get</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 将中止信号与请求关联</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 请求成功处理逻辑</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(response.<span class="property">data</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 错误处理</span></span><br><span class="line">    <span class="keyword">if</span> (axios.<span class="title function_">isCancel</span>(error)) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求已被取消:&quot;</span>, error.<span class="property">message</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求错误:&quot;</span>, error);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 需要取消请求时调用 abort() 方法</span></span><br><span class="line">controller.<span class="title function_">abort</span>(); <span class="comment">// 这会触发请求取消</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>关键点说明：</p>
+<ol>
+<li><p>AbortController ：</p>
+<ul>
+<li>是现代浏览器提供的原生 API</li>
+<li>通过 signal 属性提供中止信号</li>
+<li>调用 abort() 方法会触发请求取消</li>
+</ul>
+</li>
+<li><p>axios 集成 ：</p>
+<ul>
+<li>将 controller.signal 传入请求配置</li>
+<li>当调用 abort() 时，axios 会自动取消请求</li>
+<li>取消后会触发 catch 分支，错误类型为 Cancel</li>
+</ul>
+</li>
+<li><p>应用场景 ：</p>
+<ul>
+<li>用户导航离开页面时取消未完成请求</li>
+<li>表单提交后防止重复提交</li>
+<li>实现请求超时控制（配合 setTimeout ）</li>
+</ul>
+</li>
+<li><p>与传统 CancelToken 的区别 ：</p>
+<ul>
+<li>这是浏览器原生方案，不再依赖 axios 特有的 CancelToken</li>
+<li>更简洁，与现代 Fetch API 的取消机制一致</li>
+<li>CancelToken 已被标记为 deprecated</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<ol start="3">
+<li><p>自动转换</p>
+<ul>
+<li><p>自动 JSON 解析</p>
+</li>
+<li><p>请求数据序列化</p>
+</li>
+<li><p>浏览器环境自动 XSRF 防御</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-框架集成最佳实践"><a href="#4-框架集成最佳实践" class="headerlink" title="4. 框架集成最佳实践"></a>4. 框架集成最佳实践</h2><h3 id="React-方案"><a href="#React-方案" class="headerlink" title="React 方案"></a>React 方案</h3><blockquote>
+<p>这段代码实现了一个自定义 React Hook useFetch ，用于封装 axios 的数据获取逻辑，具有自动取消请求的功能</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">useFetch</span>(<span class="params">url</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 使用 useState 管理获取到的数据状态</span></span><br><span class="line">  <span class="keyword">const</span> [data, setData] = <span class="title function_">useState</span>(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 使用 useEffect 处理副作用</span></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 3. 创建 AbortController 用于取消请求</span></span><br><span class="line">    <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 发起 axios GET 请求</span></span><br><span class="line">    axios</span><br><span class="line">      .<span class="title function_">get</span>(url, &#123;</span><br><span class="line">        <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 绑定取消信号</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="title function_">setData</span>(res.<span class="property">data</span>)) <span class="comment">// 成功时更新状态</span></span><br><span class="line">      .<span class="title function_">catch</span>(<span class="variable language_">console</span>.<span class="property">error</span>); <span class="comment">// 错误时打印日志</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 清理函数：组件卸载时取消请求</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>();</span><br><span class="line">  &#125;, [url]); <span class="comment">// 6. 依赖项：url 变化时重新执行</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. 返回获取到的数据</span></span><br><span class="line">  <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用示例:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/users&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!data) <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>Loading...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;JSON.stringify(data)&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Vue-3-组合式-API"><a href="#Vue-3-组合式-API" class="headerlink" title="Vue 3 组合式 API"></a>Vue 3 组合式 API</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useFetch &#125; <span class="keyword">from</span> <span class="string">&quot;@vueuse/core&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; data, error &#125; = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/data&quot;</span>).<span class="title function_">get</span>().<span class="title function_">json</span>();</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-高级应用场景"><a href="#5-高级应用场景" class="headerlink" title="5. 高级应用场景"></a>5. 高级应用场景</h2><h3 id="WebSocket-实时通信"><a href="#WebSocket-实时通信" class="headerlink" title="WebSocket 实时通信"></a>WebSocket 实时通信</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 WebSocket 连接，指定服务器地址</span></span><br><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;ws://localhost:8080&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 连接建立成功回调</span></span><br><span class="line">socket.<span class="property">onopen</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已建立&quot;</span>);</span><br><span class="line">  <span class="comment">// 连接建立后立即向服务器发送消息</span></span><br><span class="line">  socket.<span class="title function_">send</span>(<span class="string">&quot;Hello, Server!&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 收到服务器消息回调</span></span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="keyword">function</span> (<span class="params">event</span>) &#123;</span><br><span class="line">  <span class="comment">// event.data 包含服务器发送的数据</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 连接关闭回调</span></span><br><span class="line">socket.<span class="property">onclose</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已关闭&quot;</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>基础知识</tag>
+        <tag>浏览器-请求对象</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>学习目录</title>
+    <url>/2018/05/01/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/</url>
+    <content><![CDATA[<img src="/images/page-header.png" class="" title="首页展示 width&#x3D;50%">
+
+<!-- ![首页展示](/images/page-header.png)s -->
+
+<h2 id="算法题解"><a href="#算法题解" class="headerlink" title="算法题解"></a>算法题解</h2><h3 id="常见数据结构"><a href="#常见数据结构" class="headerlink" title="常见数据结构"></a>常见数据结构</h3><h4 id="数组-vs-链表"><a href="#数组-vs-链表" class="headerlink" title="数组 vs 链表"></a>数组 vs 链表</h4><p><strong>存储方式</strong></p>
+<ul>
+<li>数组：连续内存空间，预分配大小</li>
+<li>链表：节点离散存储，动态扩展</li>
+</ul>
+<p><strong>时间复杂度对比</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>数组</th>
+<th>链表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>随机访问</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>头部插入</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>尾部追加</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<p><strong>应用场景</strong></p>
+<ul>
+<li>数组：需要频繁随机访问（如矩阵运算）</li>
+<li>链表：频繁增删操作（如 LRU 缓存）</li>
+</ul>
+<h4 id="栈-队列"><a href="#栈-队列" class="headerlink" title="栈 &amp; 队列"></a>栈 &amp; 队列</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 最小栈实现（支持O(1)获取最小值）</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MinStack</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span> = [];</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span> = [<span class="title class_">Infinity</span>];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">push</span>(<span class="params">val</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">push</span>(val);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">push</span>(<span class="title class_">Math</span>.<span class="title function_">min</span>(val, <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>]));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">pop</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">pop</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pop</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">getMin</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 用队列实现栈</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyStack</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue = collections.deque()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">push</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue.append(x)</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(<span class="variable language_">self</span>.queue)-<span class="number">1</span>):</span><br><span class="line">            <span class="variable language_">self</span>.queue.append(<span class="variable language_">self</span>.queue.popleft())</span><br></pre></td></tr></table></figure>
+
+<h4 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h4><p><strong>冲突解决</strong></p>
+<ul>
+<li>开放寻址法：线性探测、二次探测</li>
+<li>链地址法：链表存储冲突元素（Java HashMap）</li>
+</ul>
+<h4 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h4><ul>
+<li>完全二叉树结构，可用数组实现</li>
+<li>应用场景：TopK 问题（时间复杂度 O(nlogk)）</li>
+</ul>
+<hr>
+<h3 id="典型算法"><a href="#典型算法" class="headerlink" title="典型算法"></a>典型算法</h3><p><strong>快速排序优化</strong></p>
+<ol>
+<li>三数取中法选择 pivot</li>
+<li>小数组切换插入排序</li>
+<li>三向切分（处理大量重复元素）</li>
+</ol>
+<p><strong>面试高频问题</strong></p>
+<ul>
+<li>如何判断链表有环？快慢指针 vs 哈希表</li>
+<li>二叉树层序遍历的时空复杂度？</li>
+<li>海量数据求 TopK 为什么用堆不用排序？</li>
+</ul>
+<h3 id="典型算法-1"><a href="#典型算法-1" class="headerlink" title="典型算法"></a>典型算法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 快速排序示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">quickSort</span>(<span class="params">arr</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (arr.<span class="property">length</span> &lt;= <span class="number">1</span>) <span class="keyword">return</span> arr;</span><br><span class="line">  <span class="keyword">const</span> pivot = arr[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">const</span> left = [];</span><br><span class="line">  <span class="keyword">const</span> right = [];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; arr.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    arr[i] &lt; pivot ? left.<span class="title function_">push</span>(arr[i]) : right.<span class="title function_">push</span>(arr[i]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> [...<span class="title function_">quickSort</span>(left), pivot, ...<span class="title function_">quickSort</span>(right)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="前端核心"><a href="#前端核心" class="headerlink" title="前端核心"></a>前端核心</h2><h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><h4 id="原型链"><a href="#原型链" class="headerlink" title="原型链"></a>原型链</h4><p><strong>实现机制</strong></p>
+<ol>
+<li>每个对象都有 <code>__proto__</code> 属性指向构造函数的 prototype</li>
+<li>每个构造函数也是函数，其 <code>__proto__</code> 指向 Function.prototype</li>
+<li>Function.prototype 的 <code>__proto__</code> 指向 Object.prototype</li>
+<li>Object.prototype 的 <code>__proto__</code> 指向 null (原型链的终点即是 Object.prototype)</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">eat</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span> + <span class="string">&quot; eating&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Animal</span>(<span class="string">&quot;Tom&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">__proto__</span> === <span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h4><p><strong>实现方式</strong></p>
+<ol>
+<li>组合继承（推荐）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 组合继承（原型链+构造函数）</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Cat</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Animal</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 第二次调用Animal</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Animal</span>(); <span class="comment">// 第一次调用Animal</span></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">constructor</span> = <span class="title class_">Cat</span>; <span class="comment">// 修复构造函数指向</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Cat</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">3</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">colors</span>); <span class="comment">// [&quot;red&quot;, &quot;blue&quot;]</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>寄生组合式继承（推荐-最理想的继承形式）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">inheritPrototype</span>(<span class="params">child, parent</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> prototype = <span class="title class_">Object</span>.<span class="title function_">create</span>(parent.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// 创建父类原型的副本</span></span><br><span class="line">  prototype.<span class="property">constructor</span> = child; <span class="comment">// 修复constructor指向</span></span><br><span class="line">  child.<span class="property"><span class="keyword">prototype</span></span> = prototype; <span class="comment">// 赋值给子类原型</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Parent</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Parent</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Child</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Parent</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 只调用一次父类构造函数</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关键步骤：建立原型关系</span></span><br><span class="line"><span class="title function_">inheritPrototype</span>(<span class="title class_">Child</span>, <span class="title class_">Parent</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加子类方法</span></span><br><span class="line"><span class="title class_">Child</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayAge</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">age</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> child1 = <span class="keyword">new</span> <span class="title class_">Child</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">5</span>);</span><br><span class="line">child1.<span class="property">colors</span>.<span class="title function_">push</span>(<span class="string">&quot;green&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(child1.<span class="property">colors</span>); <span class="comment">// [&#x27;red&#x27;, &#x27;blue&#x27;, &#x27;green&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="JavaScript-继承方式对比"><a href="#JavaScript-继承方式对比" class="headerlink" title="JavaScript 继承方式对比"></a>JavaScript 继承方式对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>组合继承</th>
+<th>寄生组合式继承</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>实现方式</strong></td>
+<td>构造函数继承+原型链继承</td>
+<td>构造函数继承+原型拷贝</td>
+</tr>
+<tr>
+<td><strong>父类调用次数</strong></td>
+<td>2 次（构造函数和原型各 1 次）</td>
+<td>1 次（仅构造函数）</td>
+</tr>
+<tr>
+<td><strong>原型链纯度</strong></td>
+<td>子类原型包含多余父类实例属性</td>
+<td>纯净的原型链</td>
+</tr>
+<tr>
+<td><strong>内存效率</strong></td>
+<td>较低（重复属性）</td>
+<td>较高</td>
+</tr>
+<tr>
+<td><strong>代码复杂度</strong></td>
+<td>简单直接</td>
+<td>需要辅助函数</td>
+</tr>
+<tr>
+<td><strong>ES6 class 底层</strong></td>
+<td>不是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>简单继承场景</td>
+<td>需要高效继承的复杂场景</td>
+</tr>
+<tr>
+<td><strong>方法复用</strong></td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>属性隔离</strong></td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>constructor 修正</strong></td>
+<td>需要手动修正</td>
+<td>需要手动修正</td>
+</tr>
+</tbody></table>
+<p><strong>关键区别总结</strong>：</p>
+<ol>
+<li>寄生组合式继承避免了组合继承的原型属性冗余问题</li>
+<li>寄生组合式继承是 ES6 class 语法糖的底层实现方式</li>
+<li>组合继承更易理解但性能稍差，适合简单继承场景</li>
+</ol>
+<h4 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h4><p><strong>核心特征</strong></p>
+<ul>
+<li>函数嵌套结构（函数内部定义函数）</li>
+<li>内部函数引用了外部函数的变量</li>
+<li>延长变量生命周期（内部函数在外部函数执行完毕后仍然可以被访问）</li>
+</ul>
+<p><strong>闭包的关键特征：</strong></p>
+<ul>
+<li>保持对词法作用域的引用</li>
+<li>即使外部函数已经执行完毕，闭包仍然可以访问外部函数的变量</li>
+<li>闭包会阻止垃圾回收机制回收被引用的变量</li>
+</ul>
+<p><strong>闭包的典型应用场景：</strong></p>
+<ul>
+<li>数据封装和私有变量</li>
+<li>回调函数</li>
+<li>函数柯里化</li>
+<li>模块模式</li>
+</ul>
+<p><strong>内存泄漏案例</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createHeavy</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> bigData; <span class="comment">// 闭包持有bigData引用</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解决方案：显式释放引用</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">safeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">getData</span>: <span class="function">() =&gt;</span> bigData,</span><br><span class="line">    <span class="attr">clear</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      bigData.<span class="property">length</span> = <span class="number">0</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h4><p><strong>浏览器环境</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>), <span class="number">0</span>);</span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;3&quot;</span>));</span><br><span class="line"><span class="comment">// 输出顺序：1 -&gt; 3 -&gt; 2</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Node.js 环境</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line">fs.<span class="title function_">readFile</span>(__filename, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>), <span class="number">0</span>);</span><br><span class="line">  <span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>));</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 输出顺序：2 -&gt; 1（在I/O阶段setImmediate优先）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="React"><a href="#React" class="headerlink" title="React"></a>React</h3><h4 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h4><p><strong>类组件 vs 函数组件</strong></p>
+<ul>
+<li>挂载阶段：constructor → render → componentDidMount</li>
+<li>更新阶段：shouldComponentUpdate → render → componentDidUpdate</li>
+<li>卸载阶段：componentWillUnmount</li>
+</ul>
+<p><strong>Hooks 执行顺序</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">App</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// componentDidMount</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 mounted&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 unmount&quot;</span>); <span class="comment">// componentWillUnmount</span></span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> [count, setCount] = <span class="title function_">useState</span>(<span class="number">0</span>); <span class="comment">// 状态初始化</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Hooks-使用"><a href="#Hooks-使用" class="headerlink" title="Hooks 使用"></a>Hooks 使用</h4><p><strong>最佳实践</strong></p>
+<ol>
+<li>用 useMemo 缓存昂贵计算</li>
+<li>用 useCallback 避免子组件无效重渲染</li>
+<li>自定义 Hook 封装通用逻辑</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自定义Hook实现防抖</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useDebounce</span>(<span class="params">value, delay</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [debouncedValue, setDebouncedValue] = <span class="title function_">useState</span>(value);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> handler = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="title function_">setDebouncedValue</span>(value);</span><br><span class="line">    &#125;, delay);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">clearTimeout</span>(handler);</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;, [value, delay]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> debouncedValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚拟-DOM-原理"><a href="#虚拟-DOM-原理" class="headerlink" title="虚拟 DOM 原理"></a>虚拟 DOM 原理</h4><p><strong>Diff 算法优化策略</strong></p>
+<ol>
+<li>同级比较（时间复杂度 O(n^3)→O(n)）</li>
+<li>key 属性优化列表对比</li>
+<li>双缓存技术避免白屏</li>
+</ol>
+<hr>
+<hr>
+<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><h3 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h3><ul>
+<li>CAP 定理</li>
+<li>RESTful 设计</li>
+<li>缓存策略</li>
+</ul>
+<h3 id="典型系统"><a href="#典型系统" class="headerlink" title="典型系统"></a>典型系统</h3><ul>
+<li>短链接系统</li>
+<li>秒杀系统</li>
+<li>即时通讯系统</li>
+</ul>
+<hr>
+<h2 id="计算机基础"><a href="#计算机基础" class="headerlink" title="计算机基础"></a>计算机基础</h2><h3 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h3><ul>
+<li>进程&#x2F;线程</li>
+<li>内存管理</li>
+<li>文件系统</li>
+</ul>
+<h3 id="网络协议"><a href="#网络协议" class="headerlink" title="网络协议"></a>网络协议</h3><ul>
+<li>TCP&#x2F;IP 协议栈</li>
+<li>HTTP&#x2F;2 特性</li>
+<li>WebSocket 原理</li>
+</ul>
+<hr>
+<p>持续更新中…</p>
+]]></content>
+      <categories>
+        <category>目录</category>
+      </categories>
+  </entry>
+  <entry>
     <title>React项目中Markdown集成完整指南</title>
     <url>/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/</url>
     <content><![CDATA[<h2 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a>推荐方案</h2><blockquote>
@@ -992,402 +1545,6 @@
       <tags>
         <tag>前端</tag>
         <tag>JavaScript 基础知识</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>学习目录</title>
-    <url>/2018/05/01/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/</url>
-    <content><![CDATA[<img src="/images/page-header.png" class="" title="首页展示 width&#x3D;50%">
-
-<!-- ![首页展示](/images/page-header.png)s -->
-
-<h2 id="算法题解"><a href="#算法题解" class="headerlink" title="算法题解"></a>算法题解</h2><h3 id="常见数据结构"><a href="#常见数据结构" class="headerlink" title="常见数据结构"></a>常见数据结构</h3><h4 id="数组-vs-链表"><a href="#数组-vs-链表" class="headerlink" title="数组 vs 链表"></a>数组 vs 链表</h4><p><strong>存储方式</strong></p>
-<ul>
-<li>数组：连续内存空间，预分配大小</li>
-<li>链表：节点离散存储，动态扩展</li>
-</ul>
-<p><strong>时间复杂度对比</strong></p>
-<table>
-<thead>
-<tr>
-<th>操作</th>
-<th>数组</th>
-<th>链表</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>随机访问</td>
-<td>O(1)</td>
-<td>O(n)</td>
-</tr>
-<tr>
-<td>头部插入</td>
-<td>O(n)</td>
-<td>O(1)</td>
-</tr>
-<tr>
-<td>尾部追加</td>
-<td>O(1)</td>
-<td>O(1)</td>
-</tr>
-</tbody></table>
-<p><strong>应用场景</strong></p>
-<ul>
-<li>数组：需要频繁随机访问（如矩阵运算）</li>
-<li>链表：频繁增删操作（如 LRU 缓存）</li>
-</ul>
-<h4 id="栈-队列"><a href="#栈-队列" class="headerlink" title="栈 &amp; 队列"></a>栈 &amp; 队列</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 最小栈实现（支持O(1)获取最小值）</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MinStack</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span> = [];</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span> = [<span class="title class_">Infinity</span>];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">push</span>(<span class="params">val</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">push</span>(val);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">push</span>(<span class="title class_">Math</span>.<span class="title function_">min</span>(val, <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>]));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">pop</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">pop</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pop</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">getMin</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 用队列实现栈</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyStack</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue = collections.deque()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">push</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue.append(x)</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(<span class="variable language_">self</span>.queue)-<span class="number">1</span>):</span><br><span class="line">            <span class="variable language_">self</span>.queue.append(<span class="variable language_">self</span>.queue.popleft())</span><br></pre></td></tr></table></figure>
-
-<h4 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h4><p><strong>冲突解决</strong></p>
-<ul>
-<li>开放寻址法：线性探测、二次探测</li>
-<li>链地址法：链表存储冲突元素（Java HashMap）</li>
-</ul>
-<h4 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h4><ul>
-<li>完全二叉树结构，可用数组实现</li>
-<li>应用场景：TopK 问题（时间复杂度 O(nlogk)）</li>
-</ul>
-<hr>
-<h3 id="典型算法"><a href="#典型算法" class="headerlink" title="典型算法"></a>典型算法</h3><p><strong>快速排序优化</strong></p>
-<ol>
-<li>三数取中法选择 pivot</li>
-<li>小数组切换插入排序</li>
-<li>三向切分（处理大量重复元素）</li>
-</ol>
-<p><strong>面试高频问题</strong></p>
-<ul>
-<li>如何判断链表有环？快慢指针 vs 哈希表</li>
-<li>二叉树层序遍历的时空复杂度？</li>
-<li>海量数据求 TopK 为什么用堆不用排序？</li>
-</ul>
-<h3 id="典型算法-1"><a href="#典型算法-1" class="headerlink" title="典型算法"></a>典型算法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 快速排序示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">quickSort</span>(<span class="params">arr</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (arr.<span class="property">length</span> &lt;= <span class="number">1</span>) <span class="keyword">return</span> arr;</span><br><span class="line">  <span class="keyword">const</span> pivot = arr[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">const</span> left = [];</span><br><span class="line">  <span class="keyword">const</span> right = [];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; arr.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    arr[i] &lt; pivot ? left.<span class="title function_">push</span>(arr[i]) : right.<span class="title function_">push</span>(arr[i]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> [...<span class="title function_">quickSort</span>(left), pivot, ...<span class="title function_">quickSort</span>(right)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="前端核心"><a href="#前端核心" class="headerlink" title="前端核心"></a>前端核心</h2><h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><h4 id="原型链"><a href="#原型链" class="headerlink" title="原型链"></a>原型链</h4><p><strong>实现机制</strong></p>
-<ol>
-<li>每个对象都有 <code>__proto__</code> 属性指向构造函数的 prototype</li>
-<li>每个构造函数也是函数，其 <code>__proto__</code> 指向 Function.prototype</li>
-<li>Function.prototype 的 <code>__proto__</code> 指向 Object.prototype</li>
-<li>Object.prototype 的 <code>__proto__</code> 指向 null (原型链的终点即是 Object.prototype)</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">eat</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span> + <span class="string">&quot; eating&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Animal</span>(<span class="string">&quot;Tom&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">__proto__</span> === <span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h4><p><strong>实现方式</strong></p>
-<ol>
-<li>组合继承（推荐）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 组合继承（原型链+构造函数）</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Cat</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Animal</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 第二次调用Animal</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Animal</span>(); <span class="comment">// 第一次调用Animal</span></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">constructor</span> = <span class="title class_">Cat</span>; <span class="comment">// 修复构造函数指向</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Cat</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">3</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">colors</span>); <span class="comment">// [&quot;red&quot;, &quot;blue&quot;]</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>寄生组合式继承（推荐-最理想的继承形式）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">inheritPrototype</span>(<span class="params">child, parent</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> prototype = <span class="title class_">Object</span>.<span class="title function_">create</span>(parent.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// 创建父类原型的副本</span></span><br><span class="line">  prototype.<span class="property">constructor</span> = child; <span class="comment">// 修复constructor指向</span></span><br><span class="line">  child.<span class="property"><span class="keyword">prototype</span></span> = prototype; <span class="comment">// 赋值给子类原型</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Parent</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Parent</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Child</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Parent</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 只调用一次父类构造函数</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关键步骤：建立原型关系</span></span><br><span class="line"><span class="title function_">inheritPrototype</span>(<span class="title class_">Child</span>, <span class="title class_">Parent</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加子类方法</span></span><br><span class="line"><span class="title class_">Child</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayAge</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">age</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> child1 = <span class="keyword">new</span> <span class="title class_">Child</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">5</span>);</span><br><span class="line">child1.<span class="property">colors</span>.<span class="title function_">push</span>(<span class="string">&quot;green&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(child1.<span class="property">colors</span>); <span class="comment">// [&#x27;red&#x27;, &#x27;blue&#x27;, &#x27;green&#x27;]</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="JavaScript-继承方式对比"><a href="#JavaScript-继承方式对比" class="headerlink" title="JavaScript 继承方式对比"></a>JavaScript 继承方式对比</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>组合继承</th>
-<th>寄生组合式继承</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>实现方式</strong></td>
-<td>构造函数继承+原型链继承</td>
-<td>构造函数继承+原型拷贝</td>
-</tr>
-<tr>
-<td><strong>父类调用次数</strong></td>
-<td>2 次（构造函数和原型各 1 次）</td>
-<td>1 次（仅构造函数）</td>
-</tr>
-<tr>
-<td><strong>原型链纯度</strong></td>
-<td>子类原型包含多余父类实例属性</td>
-<td>纯净的原型链</td>
-</tr>
-<tr>
-<td><strong>内存效率</strong></td>
-<td>较低（重复属性）</td>
-<td>较高</td>
-</tr>
-<tr>
-<td><strong>代码复杂度</strong></td>
-<td>简单直接</td>
-<td>需要辅助函数</td>
-</tr>
-<tr>
-<td><strong>ES6 class 底层</strong></td>
-<td>不是</td>
-<td>是</td>
-</tr>
-<tr>
-<td><strong>适用场景</strong></td>
-<td>简单继承场景</td>
-<td>需要高效继承的复杂场景</td>
-</tr>
-<tr>
-<td><strong>方法复用</strong></td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td><strong>属性隔离</strong></td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td><strong>constructor 修正</strong></td>
-<td>需要手动修正</td>
-<td>需要手动修正</td>
-</tr>
-</tbody></table>
-<p><strong>关键区别总结</strong>：</p>
-<ol>
-<li>寄生组合式继承避免了组合继承的原型属性冗余问题</li>
-<li>寄生组合式继承是 ES6 class 语法糖的底层实现方式</li>
-<li>组合继承更易理解但性能稍差，适合简单继承场景</li>
-</ol>
-<h4 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h4><p><strong>核心特征</strong></p>
-<ul>
-<li>函数嵌套结构（函数内部定义函数）</li>
-<li>内部函数引用了外部函数的变量</li>
-<li>延长变量生命周期（内部函数在外部函数执行完毕后仍然可以被访问）</li>
-</ul>
-<p><strong>闭包的关键特征：</strong></p>
-<ul>
-<li>保持对词法作用域的引用</li>
-<li>即使外部函数已经执行完毕，闭包仍然可以访问外部函数的变量</li>
-<li>闭包会阻止垃圾回收机制回收被引用的变量</li>
-</ul>
-<p><strong>闭包的典型应用场景：</strong></p>
-<ul>
-<li>数据封装和私有变量</li>
-<li>回调函数</li>
-<li>函数柯里化</li>
-<li>模块模式</li>
-</ul>
-<p><strong>内存泄漏案例</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createHeavy</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> bigData; <span class="comment">// 闭包持有bigData引用</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解决方案：显式释放引用</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">safeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">getData</span>: <span class="function">() =&gt;</span> bigData,</span><br><span class="line">    <span class="attr">clear</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      bigData.<span class="property">length</span> = <span class="number">0</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h4><p><strong>浏览器环境</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>), <span class="number">0</span>);</span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;3&quot;</span>));</span><br><span class="line"><span class="comment">// 输出顺序：1 -&gt; 3 -&gt; 2</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Node.js 环境</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line">fs.<span class="title function_">readFile</span>(__filename, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>), <span class="number">0</span>);</span><br><span class="line">  <span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>));</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 输出顺序：2 -&gt; 1（在I/O阶段setImmediate优先）</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="React"><a href="#React" class="headerlink" title="React"></a>React</h3><h4 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h4><p><strong>类组件 vs 函数组件</strong></p>
-<ul>
-<li>挂载阶段：constructor → render → componentDidMount</li>
-<li>更新阶段：shouldComponentUpdate → render → componentDidUpdate</li>
-<li>卸载阶段：componentWillUnmount</li>
-</ul>
-<p><strong>Hooks 执行顺序</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">App</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// componentDidMount</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 mounted&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 unmount&quot;</span>); <span class="comment">// componentWillUnmount</span></span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> [count, setCount] = <span class="title function_">useState</span>(<span class="number">0</span>); <span class="comment">// 状态初始化</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Hooks-使用"><a href="#Hooks-使用" class="headerlink" title="Hooks 使用"></a>Hooks 使用</h4><p><strong>最佳实践</strong></p>
-<ol>
-<li>用 useMemo 缓存昂贵计算</li>
-<li>用 useCallback 避免子组件无效重渲染</li>
-<li>自定义 Hook 封装通用逻辑</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自定义Hook实现防抖</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useDebounce</span>(<span class="params">value, delay</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [debouncedValue, setDebouncedValue] = <span class="title function_">useState</span>(value);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> handler = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="title function_">setDebouncedValue</span>(value);</span><br><span class="line">    &#125;, delay);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">clearTimeout</span>(handler);</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;, [value, delay]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> debouncedValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="虚拟-DOM-原理"><a href="#虚拟-DOM-原理" class="headerlink" title="虚拟 DOM 原理"></a>虚拟 DOM 原理</h4><p><strong>Diff 算法优化策略</strong></p>
-<ol>
-<li>同级比较（时间复杂度 O(n^3)→O(n)）</li>
-<li>key 属性优化列表对比</li>
-<li>双缓存技术避免白屏</li>
-</ol>
-<hr>
-<hr>
-<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><h3 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h3><ul>
-<li>CAP 定理</li>
-<li>RESTful 设计</li>
-<li>缓存策略</li>
-</ul>
-<h3 id="典型系统"><a href="#典型系统" class="headerlink" title="典型系统"></a>典型系统</h3><ul>
-<li>短链接系统</li>
-<li>秒杀系统</li>
-<li>即时通讯系统</li>
-</ul>
-<hr>
-<h2 id="计算机基础"><a href="#计算机基础" class="headerlink" title="计算机基础"></a>计算机基础</h2><h3 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h3><ul>
-<li>进程&#x2F;线程</li>
-<li>内存管理</li>
-<li>文件系统</li>
-</ul>
-<h3 id="网络协议"><a href="#网络协议" class="headerlink" title="网络协议"></a>网络协议</h3><ul>
-<li>TCP&#x2F;IP 协议栈</li>
-<li>HTTP&#x2F;2 特性</li>
-<li>WebSocket 原理</li>
-</ul>
-<hr>
-<p>持续更新中…</p>
-]]></content>
-      <categories>
-        <category>目录</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>浏览器原生请求对象</title>
-    <url>/2022/07/03/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%8E%9F%E7%94%9F%E8%AF%B7%E6%B1%82%E5%AF%B9%E8%B1%A1/</url>
-    <content><![CDATA[<h1 id="前端请求技术全景：从原生-API-到框架最佳实践"><a href="#前端请求技术全景：从原生-API-到框架最佳实践" class="headerlink" title="前端请求技术全景：从原生 API 到框架最佳实践"></a>前端请求技术全景：从原生 API 到框架最佳实践</h1><h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>前端请求技术经历了三个阶段演进：</p>
-<ol>
-<li><strong>XMLHttpRequest 时代</strong>（2005）：首个异步请求 API，催生 Ajax 革命</li>
-<li><strong>Fetch API 时代</strong>（2015）：基于 Promise 的现代化方案</li>
-<li><strong>封装库时代</strong>：axios 等库填补原生 API 的易用性缺口</li>
-</ol>
-<p>现代 Web 应用平均发起 50+次请求，请求处理能力直接影响用户体验和核心业务指标。</p>
-<hr>
-<h2 id="2-原生-API-详解"><a href="#2-原生-API-详解" class="headerlink" title="2. 原生 API 详解"></a>2. 原生 API 详解</h2><h3 id="XHR-vs-Fetch-核心对比"><a href="#XHR-vs-Fetch-核心对比" class="headerlink" title="XHR vs Fetch 核心对比"></a>XHR vs Fetch 核心对比</h3><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>XHR</th>
-<th>Fetch</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>异步模型</td>
-<td>回调机制</td>
-<td>Promise</td>
-</tr>
-<tr>
-<td>请求终止</td>
-<td>xhr.abort()</td>
-<td>AbortController</td>
-</tr>
-<tr>
-<td>进度监控</td>
-<td>progress 事件</td>
-<td>不可直接支持</td>
-</tr>
-<tr>
-<td>超时设置</td>
-<td>timeout 属性</td>
-<td>需手动封装</td>
-</tr>
-<tr>
-<td>CORS 处理</td>
-<td>需 withCredentials</td>
-<td>credentials 参数</td>
-</tr>
-</tbody></table>
-<h3 id="XHR-示例"><a href="#XHR-示例" class="headerlink" title="XHR 示例"></a>XHR 示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 简单实现ajax s</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> url = <span class="string">&quot;xxxxxxxxxxxx&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="variable constant_">XHR</span> = <span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// XHR 支持同步请求（ open 方法的第三个参数设为 false ），但会阻塞 UI 线程，通常不推荐使用。</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>, url, <span class="literal">true</span>);</span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">send</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/** readyState</span></span><br><span class="line"><span class="comment"> * 0(UNSENT): 请求未初始化 (open()方法未被调用)</span></span><br><span class="line"><span class="comment"> * 1(OPEND): 服务器连接已建立 (open()方法已被调用, send() 还未调用)</span></span><br><span class="line"><span class="comment"> * 2(HEADER_RECEIVED): 请求已接收 (send()方法已被调用,且响应头和状态码已收到)</span></span><br><span class="line"><span class="comment"> * 3(LOADING): 请求处理中,正在接收响应体，此时 responseText 属性可能包含部分数据</span></span><br><span class="line"><span class="comment"> * 4(DONE): 请求已完成，且响应已就绪 (响应数据已完全接收或请求失败)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 检查XMLHttpRequest对象的状态和响应状态码</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable constant_">XHR</span>.<span class="property">readyState</span> == <span class="number">4</span> &amp;&amp; <span class="variable constant_">XHR</span>.<span class="property">status</span> == <span class="number">200</span>) &#123;</span><br><span class="line">    <span class="comment">// 当请求已完成（readyState为4）且响应状态码为200（成功）时执行以下代码</span></span><br><span class="line">    <span class="comment">// 将响应文本解析为JSON对象</span></span><br><span class="line">    result = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable constant_">XHR</span>.<span class="property">responseText</span>);</span><br><span class="line">    <span class="comment">// 将解析后的结果输出到控制台</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Fetch-示例：带超时的-GET-请求"><a href="#Fetch-示例：带超时的-GET-请求" class="headerlink" title="Fetch 示例：带超时的 GET 请求"></a>Fetch 示例：带超时的 GET 请求</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>(), <span class="number">5000</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">signal</span>: controller.<span class="property">signal</span>,</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err.<span class="property">name</span> === <span class="string">&quot;AbortError&quot;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求超时&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="3-封装库分析：axios-核心优势"><a href="#3-封装库分析：axios-核心优势" class="headerlink" title="3. 封装库分析：axios 核心优势"></a>3. 封装库分析：axios 核心优势</h2><h3 id="核心能力矩阵"><a href="#核心能力矩阵" class="headerlink" title="核心能力矩阵"></a>核心能力矩阵</h3><ol>
-<li>拦截器系统</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求拦截器 - 在请求发送前执行</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 修改请求配置对象，添加 Authorization 请求头</span></span><br><span class="line">  config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="title function_">getToken</span>();</span><br><span class="line">  <span class="comment">// 必须返回修改后的配置对象</span></span><br><span class="line">  <span class="keyword">return</span> config;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应拦截器 - 在响应返回后执行</span></span><br><span class="line"><span class="comment">// normalizeData 和 handleApiErrord 是自定义的处理函数</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="comment">// 第一个函数处理成功响应 (状态码 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">response</span>) =&gt;</span> <span class="title function_">normalizeData</span>(response.<span class="property">data</span>),</span><br><span class="line">  <span class="comment">// 第二个函数处理错误响应 (状态码非 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> <span class="title function_">handleApiError</span>(error)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>关键点说明：</p>
-<ol>
-<li><p>请求拦截器 ：</p>
-<ul>
-<li>通过 axios.interceptors.request.use() 注册</li>
-<li>每次发送请求前自动执行</li>
-<li>典型用途：添加认证头、设置公共参数、修改请求配置</li>
-<li>示例中自动添加了 Authorization 头，值来自 getToken() 函数</li>
-</ul>
-</li>
-<li><p>响应拦截器 ：</p>
-<ul>
-<li>通过 axios.interceptors.response.use() 注册</li>
-<li>接收两个回调函数：成功回调和错误回调</li>
-<li>成功时：对响应数据进行标准化处理 ( normalizeData )</li>
-<li>错误时：统一错误处理 ( handleApiError )</li>
-</ul>
-</li>
-<li><p>拦截器链 ：</p>
-<ul>
-<li>可以注册多个拦截器，按注册顺序形成处理链</li>
-<li>请求拦截器：后注册的先执行</li>
-<li>响应拦截器：先注册的先执行<br>这种设计实现了请求&#x2F;响应的统一处理，避免了在每个请求中重复相同的逻辑。</li>
-</ul>
-</li>
-</ol>
-</li>
-</ul>
-<ol start="2">
-<li>取消请求（CancelToken 已弃用，推荐 AbortController）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 AbortController 实例</span></span><br><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 发起 GET 请求，将 controller 的 signal 传入请求配置</span></span><br><span class="line">axios</span><br><span class="line">  .<span class="title function_">get</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 将中止信号与请求关联</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 请求成功处理逻辑</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(response.<span class="property">data</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 错误处理</span></span><br><span class="line">    <span class="keyword">if</span> (axios.<span class="title function_">isCancel</span>(error)) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求已被取消:&quot;</span>, error.<span class="property">message</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求错误:&quot;</span>, error);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 需要取消请求时调用 abort() 方法</span></span><br><span class="line">controller.<span class="title function_">abort</span>(); <span class="comment">// 这会触发请求取消</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>关键点说明：</p>
-<ol>
-<li><p>AbortController ：</p>
-<ul>
-<li>是现代浏览器提供的原生 API</li>
-<li>通过 signal 属性提供中止信号</li>
-<li>调用 abort() 方法会触发请求取消</li>
-</ul>
-</li>
-<li><p>axios 集成 ：</p>
-<ul>
-<li>将 controller.signal 传入请求配置</li>
-<li>当调用 abort() 时，axios 会自动取消请求</li>
-<li>取消后会触发 catch 分支，错误类型为 Cancel</li>
-</ul>
-</li>
-<li><p>应用场景 ：</p>
-<ul>
-<li>用户导航离开页面时取消未完成请求</li>
-<li>表单提交后防止重复提交</li>
-<li>实现请求超时控制（配合 setTimeout ）</li>
-</ul>
-</li>
-<li><p>与传统 CancelToken 的区别 ：</p>
-<ul>
-<li>这是浏览器原生方案，不再依赖 axios 特有的 CancelToken</li>
-<li>更简洁，与现代 Fetch API 的取消机制一致</li>
-<li>CancelToken 已被标记为 deprecated</li>
-</ul>
-</li>
-</ol>
-</li>
-</ul>
-<ol start="3">
-<li><p>自动转换</p>
-<ul>
-<li><p>自动 JSON 解析</p>
-</li>
-<li><p>请求数据序列化</p>
-</li>
-<li><p>浏览器环境自动 XSRF 防御</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="4-框架集成最佳实践"><a href="#4-框架集成最佳实践" class="headerlink" title="4. 框架集成最佳实践"></a>4. 框架集成最佳实践</h2><h3 id="React-方案"><a href="#React-方案" class="headerlink" title="React 方案"></a>React 方案</h3><blockquote>
-<p>这段代码实现了一个自定义 React Hook useFetch ，用于封装 axios 的数据获取逻辑，具有自动取消请求的功能</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">useFetch</span>(<span class="params">url</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 使用 useState 管理获取到的数据状态</span></span><br><span class="line">  <span class="keyword">const</span> [data, setData] = <span class="title function_">useState</span>(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 使用 useEffect 处理副作用</span></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 3. 创建 AbortController 用于取消请求</span></span><br><span class="line">    <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 发起 axios GET 请求</span></span><br><span class="line">    axios</span><br><span class="line">      .<span class="title function_">get</span>(url, &#123;</span><br><span class="line">        <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 绑定取消信号</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="title function_">setData</span>(res.<span class="property">data</span>)) <span class="comment">// 成功时更新状态</span></span><br><span class="line">      .<span class="title function_">catch</span>(<span class="variable language_">console</span>.<span class="property">error</span>); <span class="comment">// 错误时打印日志</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 清理函数：组件卸载时取消请求</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>();</span><br><span class="line">  &#125;, [url]); <span class="comment">// 6. 依赖项：url 变化时重新执行</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. 返回获取到的数据</span></span><br><span class="line">  <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>使用示例:</p>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/users&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!data) <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>Loading...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;JSON.stringify(data)&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Vue-3-组合式-API"><a href="#Vue-3-组合式-API" class="headerlink" title="Vue 3 组合式 API"></a>Vue 3 组合式 API</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useFetch &#125; <span class="keyword">from</span> <span class="string">&quot;@vueuse/core&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; data, error &#125; = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/data&quot;</span>).<span class="title function_">get</span>().<span class="title function_">json</span>();</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-高级应用场景"><a href="#5-高级应用场景" class="headerlink" title="5. 高级应用场景"></a>5. 高级应用场景</h2><h3 id="WebSocket-实时通信"><a href="#WebSocket-实时通信" class="headerlink" title="WebSocket 实时通信"></a>WebSocket 实时通信</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 WebSocket 连接，指定服务器地址</span></span><br><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;ws://localhost:8080&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 连接建立成功回调</span></span><br><span class="line">socket.<span class="property">onopen</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已建立&quot;</span>);</span><br><span class="line">  <span class="comment">// 连接建立后立即向服务器发送消息</span></span><br><span class="line">  socket.<span class="title function_">send</span>(<span class="string">&quot;Hello, Server!&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 收到服务器消息回调</span></span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="keyword">function</span> (<span class="params">event</span>) &#123;</span><br><span class="line">  <span class="comment">// event.data 包含服务器发送的数据</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 连接关闭回调</span></span><br><span class="line">socket.<span class="property">onclose</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已关闭&quot;</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>基础知识</tag>
-        <tag>浏览器-请求对象</tag>
       </tags>
   </entry>
 </search>
