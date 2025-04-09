@@ -1,6 +1,434 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>手写 Promise 实现指南：从规范到代码实践</title>
+    <url>/2022/05/02/ES6-Promise/</url>
+    <content><![CDATA[<h2 id="一-Promise-A-规范与需求背景"><a href="#一-Promise-A-规范与需求背景" class="headerlink" title="一. Promise&#x2F;A+ 规范与需求背景"></a>一. Promise&#x2F;A+ 规范与需求背景</h2><h3 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h3><p>在 JavaScript 的异步编程中，传统的回调函数存在 “回调地狱”（层层嵌套难以维护）和 “错误处理困难” 的问题。例如：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">fs.<span class="title function_">readFile</span>(<span class="string">&quot;1.txt&quot;</span>, <span class="function">(<span class="params">err, data1</span>) =&gt;</span> &#123;</span><br><span class="line">  fs.<span class="title function_">readFile</span>(data1, <span class="function">(<span class="params">err, data2</span>) =&gt;</span> &#123;</span><br><span class="line">    fs.<span class="title function_">readFile</span>(data2, <span class="function">(<span class="params">err, data3</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/* ... */</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>Promise 应运而生，通过链式调用 .then() 将嵌套转为线性结构，同时提供统一的错误捕获机制</p>
+<h3 id="Promise-A-规范核心"><a href="#Promise-A-规范核心" class="headerlink" title="Promise&#x2F;A+ 规范核心"></a>Promise&#x2F;A+ 规范核心</h3><h3 id="1-三种状态"><a href="#1-三种状态" class="headerlink" title="1. 三种状态"></a>1. 三种状态</h3><ul>
+<li><strong>Pending</strong>：初始状态，可转为 Fulfilled 或 Rejected。</li>
+<li><strong>Fulfilled</strong>：成功态，必须有不可变的值（value）。</li>
+<li><strong>Rejected</strong>：失败态，必须有不可变的原因（reason）。</li>
+</ul>
+<h3 id="2-then-方法行为"><a href="#2-then-方法行为" class="headerlink" title="2. then 方法行为"></a>2. then 方法行为</h3><ul>
+<li>接受 <code>onFulfilled</code> 和 <code>onRejected</code> 两个回调（可选）。</li>
+<li>回调必须异步执行（如 <code>setTimeout</code> 或微任务）。</li>
+<li>可被多次调用，按注册顺序执行。</li>
+<li>必须返回新 Promise，支持链式调用。</li>
+</ul>
+<h3 id="3-解决过程（Resolution-Procedure）"><a href="#3-解决过程（Resolution-Procedure）" class="headerlink" title="3. 解决过程（Resolution Procedure）"></a>3. 解决过程（Resolution Procedure）</h3><ul>
+<li>若回调返回值是 Promise，则等待其状态；若是普通值，则直接传递。</li>
+<li>处理循环引用（如返回自身会报错）。</li>
+</ul>
+<h2 id="二-手写-Promise-实现步骤"><a href="#二-手写-Promise-实现步骤" class="headerlink" title="二. 手写 Promise 实现步骤"></a>二. 手写 Promise 实现步骤</h2><h3 id="Step-1：基本框架与状态管理"><a href="#Step-1：基本框架与状态管理" class="headerlink" title="Step 1：基本框架与状态管理"></a>Step 1：基本框架与状态管理</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>()); <span class="comment">// 触发回调</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject); <span class="comment">// 立即执行</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="title function_">reject</span>(e); <span class="comment">// 捕获同步错误</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-2：实现-then-方法"><a href="#Step-2：实现-then-方法" class="headerlink" title="Step 2：实现 then 方法"></a>Step 2：实现 then 方法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">  <span class="comment">// 处理值穿透（参数非函数时提供默认值）</span></span><br><span class="line">  onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&#x27;function&#x27;</span> ? onFulfilled : <span class="function"><span class="params">v</span> =&gt;</span> v;</span><br><span class="line">  onRejected = <span class="keyword">typeof</span> onRejected === <span class="string">&#x27;function&#x27;</span> ? onRejected : <span class="function"><span class="params">err</span> =&gt;</span> &#123; <span class="keyword">throw</span> err; &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123; <span class="comment">// 确保异步执行</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">          <span class="title function_">reject</span>(e);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;, <span class="number">0</span>);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 类似处理 handleRejected...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;fulfilled&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleFulfilled</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;rejected&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleRejected</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// pending 状态，存入队列</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> promise2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-3：解决过程与链式调用"><a href="#Step-3：解决过程与链式调用" class="headerlink" title="Step 3：解决过程与链式调用"></a>Step 3：解决过程与链式调用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&#x27;循环引用&#x27;</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject); <span class="comment">// 等待 x 的状态</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x); <span class="comment">// 普通值直接传递</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-4：错误冒泡与-catch-方法"><a href="#Step-4：错误冒泡与-catch-方法" class="headerlink" title="Step 4：错误冒泡与 catch 方法"></a>Step 4：错误冒泡与 catch 方法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整的手写代码"><a href="#完整的手写代码" class="headerlink" title="完整的手写代码"></a>完整的手写代码</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义Promise类，实现了基本的Promise功能，包括链式调用、异步处理和错误捕获。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 构造函数，接收一个执行器函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">executor</span> - 执行器函数，接收两个参数：resolve和reject。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>; <span class="comment">// 初始状态，Promise的初始状态为pending</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>; <span class="comment">// 成功值，当Promise状态变为fulfilled时，存储成功的值</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>; <span class="comment">// 失败原因，当Promise状态变为rejected时，存储失败的原因</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列，存储在Promise状态变为fulfilled时需要执行的回调函数</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列，存储在Promise状态变为rejected时需要执行的回调函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 解决函数，用于将Promise状态从pending变为fulfilled。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">value</span> - 成功的值。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为fulfilled</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="comment">// 执行所有成功回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拒绝函数，用于将Promise状态从pending变为rejected。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">reason</span> - 失败的原因。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为rejected</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="comment">// 执行所有失败回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 立即执行执行器</span></span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="comment">// 捕获同步错误</span></span><br><span class="line">      <span class="title function_">reject</span>(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加成功和失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onFulfilled</span> - 成功回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理值穿透，默认函数</span></span><br><span class="line">    onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&quot;function&quot;</span> ? onFulfilled : <span class="function">(<span class="params">v</span>) =&gt;</span> v;</span><br><span class="line">    onRejected =</span><br><span class="line">      <span class="keyword">typeof</span> onRejected === <span class="string">&quot;function&quot;</span></span><br><span class="line">        ? onRejected</span><br><span class="line">        : <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> err;</span><br><span class="line">          &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理成功回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 确保异步执行</span></span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理失败回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleRejected</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onRejected</span>(<span class="variable language_">this</span>.<span class="property">reason</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;fulfilled&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleFulfilled</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;rejected&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleRejected</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// pending状态，存入回调队列</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> promise2; <span class="comment">// 返回新Promise实现链式调用</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 解析Promise结果，处理循环引用和嵌套Promise。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">MyPromise</span>&#125; <span class="variable">promise2</span> - 新的Promise实例。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">x</span> - 回调函数的返回值。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">resolve</span> - 解决函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">reject</span> - 拒绝函数。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">    <span class="comment">// 防止 const p = new Promise.then(() =&gt; p) 会导致死循环</span></span><br><span class="line">    <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">      <span class="comment">// 循环引用检测</span></span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 处理Promise对象 （当then 返回的是promise，</span></span><br><span class="line">    <span class="comment">// 如：此处也是一个异步操作时，为了保证后一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">    <span class="comment">// 如不处理后一个then接受的会是一个Promise对象，进而无法实现链式调用）</span></span><br><span class="line">    <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">      x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 普通值直接resolve</span></span><br><span class="line">      <span class="title function_">resolve</span>(x);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三-测试用例与验证"><a href="#三-测试用例与验证" class="headerlink" title="三. 测试用例与验证"></a>三. 测试用例与验证</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试链式调用与异步</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试错误捕获</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(err)); <span class="comment">// 捕获同步错误</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="四-扩展与总结"><a href="#四-扩展与总结" class="headerlink" title="四. 扩展与总结"></a>四. 扩展与总结</h2><h3 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h3><ul>
+<li><p>静态方法：实现 Promise.all（所有成功）、Promise.race（竞速）11。</p>
+</li>
+<li><p>微任务优化：用 MutationObserver 替代 setTimeout 实现更高效的异步调度。</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Promise 通过状态机、回调队列和链式调用，将异步逻辑线性化。手写实现需严格遵循 Promise&#x2F;A+ 规范，核心在于 then 的异步处理和解决过程的递归解析。理解这一机制有助于掌握 JavaScript 异步编程的精髓</p>
+<h2 id="补充-（详解-测试用例-代码执行过程）"><a href="#补充-（详解-测试用例-代码执行过程）" class="headerlink" title="补充 （详解 测试用例 代码执行过程）"></a>补充 （详解 测试用例 代码执行过程）</h2><h3 id="测试用例："><a href="#测试用例：" class="headerlink" title="测试用例："></a>测试用例：</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-Promise-初始化"><a href="#1-Promise-初始化" class="headerlink" title="1. Promise 初始化"></a>1. Promise 初始化</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>创建 MyPromise 实例，立即执行 executor 函数</li>
+<li>遇到 setTimeout ，将回调函数放入宏任务队列，1 秒后执行</li>
+<li>此时 Promise 状态为 pending ，主线程继续执行后续代码</li>
+</ol>
+<h3 id="2-第一个-then-方法调用"><a href="#2-第一个-then-方法调用" class="headerlink" title="2. 第一个 then 方法调用"></a>2. 第一个 then 方法调用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res);</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>调用 then 方法时 Promise 仍处于 pending 状态</li>
+<li>将回调函数 (res) &#x3D;&gt; { console… } 存入 onFulfilledCallbacks 队列</li>
+<li>then 方法返回一个新的 Promise (promise2)</li>
+</ol>
+<h3 id="3-第二个-then-方法调用"><a href="#3-第二个-then-方法调用" class="headerlink" title="3. 第二个 then 方法调用"></a>3. 第二个 then 方法调用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res));</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>继续在 promise2 上调用 then</li>
+<li>由于 promise2 也处于 pending 状态，将回调存入它的 onFulfilledCallbacks</li>
+<li>返回第三个 Promise (promise3)</li>
+</ol>
+<h3 id="4-1-秒后-setTimeout-回调执行"><a href="#4-1-秒后-setTimeout-回调执行" class="headerlink" title="4. 1 秒后 setTimeout 回调执行"></a>4. 1 秒后 setTimeout 回调执行</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">() =&gt; <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>调用 resolve(“success”) ，将第一个 Promise 状态改为 fulfilled</li>
+<li>设置 this.value &#x3D; “success”</li>
+<li>执行 onFulfilledCallbacks 中的回调（第一个 then 的回调）</li>
+</ol>
+<h3 id="5-执行第一个-then-的回调"><a href="#5-执行第一个-then-的回调" class="headerlink" title="5. 执行第一个 then 的回调"></a>5. 执行第一个 then 的回调</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(res) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success&quot;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>创建新的 Promise (promise4)，立即执行其 executor</li>
+<li>同步调用 resolve(“success again”) ，promise4 状态变为 fulfilled</li>
+<li>这个返回值会通过 resolvePromise 传递给 promise2</li>
+</ol>
+<h3 id="6-执行第二个-then-的回调"><a href="#6-执行第二个-then-的回调" class="headerlink" title="6. 执行第二个 then 的回调"></a>6. 执行第二个 then 的回调</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(res) =&gt; <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success again&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>promise2 的 resolvePromise 处理返回的 promise4</li>
+<li>由于 promise4 已经是 fulfilled 状态，立即执行第二个 then 的回调</li>
+<li>输出拼接后的字符串 “success again”</li>
+</ol>
+<h2 id="完整执行时序图"><a href="#完整执行时序图" class="headerlink" title="完整执行时序图"></a>完整执行时序图</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">主线程:</span><br><span class="line">1. 创建 Promise → 设置 setTimeout → 注册 then1 → 注册 then2</span><br><span class="line">   (所有 then 回调都存入队列)</span><br><span class="line"></span><br><span class="line">宏任务队列:</span><br><span class="line">[ 1秒后:</span><br><span class="line">  1. 执行 setTimeout 回调 → resolve → 触发 then1 回调</span><br><span class="line">  2. then1 返回新 Promise → 触发 then2 回调</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h2 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h2><ol>
+<li>异步机制 ：通过 setTimeout 实现真正的异步，符合 Promise&#x2F;A+ 规范</li>
+<li>链式调用 ：每个 then 都返回新 Promise，形成调用链</li>
+<li>值传递 ：前一个 then 的返回值会作为参数传给下一个 then</li>
+<li>状态管理 ：<ul>
+<li>初始 Promise 从 pending → fulfilled</li>
+<li>then 返回的新 Promise 根据回调执行结果改变状态</li>
+</ul>
+</li>
+</ol>
+<h2 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h2><h3 id="1-resolvePromise-的作用"><a href="#1-resolvePromise-的作用" class="headerlink" title="1. resolvePromise 的作用"></a>1. resolvePromise 的作用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 循环引用检测</span></span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 处理返回的Promise对象</span></span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 3. 处理普通值</span></span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="详细解析："><a href="#详细解析：" class="headerlink" title="详细解析："></a>详细解析：</h4><ol>
+<li><p>循环引用检测</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>防止类似 promise.then(() &#x3D;&gt; promise) 的循环引用</li>
+<li>如果检测到循环引用，直接 reject 一个 TypeError</li>
+</ul>
+</li>
+<li><p>处理 Promise 对象</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">  <span class="comment">// 这里的x是上一个then的返回值,此处为一个Promise，为了确保下一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">  <span class="comment">// 需要将外层的Promise对象的resoleve和reject传入，进而捕获此处异步操作的返回值,便于传递给下一个then</span></span><br><span class="line">  x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当回调函数返回的是另一个 Promise 时（如 return new MyPromise(…) ）</li>
+<li>会等待这个 Promise 完成，然后将其结果传递给外层 Promise</li>
+<li>例如： return new MyPromise(resolve &#x3D;&gt; resolve(42)) 会等待内部 Promise 完成</li>
+</ul>
+</li>
+<li><p>处理普通值</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(x);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当回调函数返回非 Promise 值时（如数字、字符串、对象等）</li>
+<li>直接将该值作为外层 Promise 的解决值</li>
+<li>例如： return 42 会直接 resolve(42)</li>
+</ul>
+</li>
+</ol>
+<h4 id="关键作用："><a href="#关键作用：" class="headerlink" title="关键作用："></a>关键作用：</h4><ol>
+<li>实现链式调用的核心 ：处理 then 方法回调函数的返回值</li>
+<li>支持 Promise 嵌套 ：能够正确处理返回 Promise 的情况</li>
+<li>类型安全 ：防止循环引用导致的无限递归</li>
+</ol>
+<h4 id="实际应用示例："><a href="#实际应用示例：" class="headerlink" title="实际应用示例："></a>实际应用示例：</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>))</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">r</span>) =&gt;</span> <span class="title function_">r</span>(res + <span class="number">1</span>)); <span class="comment">// 返回Promise</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">return</span> res + <span class="number">1</span>; <span class="comment">// 返回普通值</span></span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个方法确保了 Promise 链式调用时，无论回调函数返回的是普通值还是 Promise 对象，都能正确传递和处理值。</p>
+<h3 id="2-onFulfilled-和-onRejected-为什么必须异步执行"><a href="#2-onFulfilled-和-onRejected-为什么必须异步执行" class="headerlink" title="2. onFulfilled 和 onRejected 为什么必须异步执行"></a>2. onFulfilled 和 onRejected 为什么必须异步执行</h3><h4 id="规范要求"><a href="#规范要求" class="headerlink" title="规范要求"></a>规范要求</h4><ul>
+<li>Promise&#x2F;A+ 规范 2.2.4 条明确规定：onFulfilled 和 onRejected 必须异步执行</li>
+<li>即使 Promise 已经处于 resolved 状态，then 方法的回调也必须异步调用</li>
+</ul>
+<h4 id="执行顺序保证-："><a href="#执行顺序保证-：" class="headerlink" title="执行顺序保证 ："></a>执行顺序保证 ：</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应该是 3 -&gt; 2</span></span><br><span class="line"><span class="comment">// 如果同步执行则会输出 2 -&gt; 3</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="一致性保证"><a href="#一致性保证" class="headerlink" title="一致性保证"></a>一致性保证</h4><ul>
+<li>无论 Promise 是立即解决还是稍后解决，<code>then</code> 回调的执行时机保持一致。</li>
+<li>避免出现有时同步有时异步的不确定行为。</li>
+</ul>
+<h4 id="避免潜在问题"><a href="#避免潜在问题" class="headerlink" title="避免潜在问题"></a>避免潜在问题</h4><ul>
+<li>同步执行可能导致调用栈过深（如递归调用 <code>then</code> 方法时）。</li>
+<li>同步执行可能打断当前执行的代码流程，导致意外行为。</li>
+</ul>
+<h4 id="微任务机制"><a href="#微任务机制" class="headerlink" title="微任务机制"></a>微任务机制</h4><ul>
+<li>原生 Promise 使用微任务队列（microtask）实现异步。</li>
+<li>这里用 <code>setTimeout</code> 模拟（虽然它是宏任务），因为简单实现通常不区分微任务和宏任务。</li>
+</ul>
+<p><strong>实际应用场景示例：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 如果不异步执行，以下代码会有问题：</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">(<span class="params">num</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(num));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应为：1, 2, 4, 3</span></span><br><span class="line"><span class="comment">// 如果同步执行 then 回调，则会输出：1, 3, 2, 4</span></span><br></pre></td></tr></table></figure>
+
+<p>因此，虽然同步执行看起来更高效，但为了符合规范和行为一致性，必须使用异步执行。在更完整的实现中，应该使用微任务（如 queueMicrotask 或 process.nextTick）而不是 setTimeout，但这里作为简单实现已经足够。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>ES6</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>ES6</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JavaScript 执行上下文、调用栈与队列</title>
+    <url>/2022/05/01/JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E3%80%81%E8%B0%83%E7%94%A8%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/</url>
+    <content><![CDATA[<h2 id="执行上下文"><a href="#执行上下文" class="headerlink" title="执行上下文"></a>执行上下文</h2><h3 id="什么是执行上下文"><a href="#什么是执行上下文" class="headerlink" title="什么是执行上下文"></a>什么是执行上下文</h3><blockquote>
+<p>执行上下文（Execution Context）是 JavaScript 代码被评估和执行时的环境概念。</p>
+</blockquote>
+<h3 id="执行上下文的类型"><a href="#执行上下文的类型" class="headerlink" title="执行上下文的类型"></a>执行上下文的类型</h3><ol>
+<li><p><strong>全局执行上下文</strong></p>
+<ul>
+<li>默认的、基础的执行上下文</li>
+<li>创建全局对象（浏览器中为 <code>window</code>，Node.js 中为 <code>global</code>）</li>
+<li>将 <code>this</code> 指向全局对象</li>
+</ul>
+</li>
+<li><p><strong>函数执行上下文</strong></p>
+<ul>
+<li>每次函数调用时创建</li>
+<li>每个函数都有自己的执行上下文</li>
+</ul>
+</li>
+<li><p><strong>Eval 执行上下文</strong></p>
+<ul>
+<li>在 <code>eval</code> 函数内部的代码有自己的执行上下文</li>
+</ul>
+</li>
+</ol>
+<h3 id="执行上下文的生命周期"><a href="#执行上下文的生命周期" class="headerlink" title="执行上下文的生命周期"></a>执行上下文的生命周期</h3><ol>
+<li><p><strong>创建阶段</strong></p>
+<ul>
+<li>创建变量对象（VO）<ul>
+<li>函数参数（函数上下文）</li>
+<li>函数声明（优先）</li>
+<li>变量声明（初始值为 <code>undefined</code>）</li>
+</ul>
+</li>
+<li>建立作用域链</li>
+<li>确定 <code>this</code> 指向</li>
+</ul>
+</li>
+<li><p><strong>执行阶段</strong></p>
+<ul>
+<li>变量赋值</li>
+<li>函数引用</li>
+<li>执行代码</li>
+</ul>
+</li>
+<li><p><strong>回收阶段</strong></p>
+<ul>
+<li>执行完毕后，等待垃圾回收</li>
+</ul>
+</li>
+</ol>
+<h3 id="变量提升示例"><a href="#变量提升示例" class="headerlink" title="变量提升示例"></a>变量提升示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// undefined</span></span><br><span class="line"><span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_">foo</span>(); <span class="comment">// &quot;Hello&quot;</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="调用栈"><a href="#调用栈" class="headerlink" title="调用栈"></a>调用栈</h2><h3 id="什么是调用栈"><a href="#什么是调用栈" class="headerlink" title="什么是调用栈"></a>什么是调用栈</h3><blockquote>
+<p>调用栈（Call Stack）是一种数据结构，用于记录代码执行的位置。</p>
+</blockquote>
+<h3 id="调用栈的特点"><a href="#调用栈的特点" class="headerlink" title="调用栈的特点"></a>调用栈的特点</h3><ol>
+<li>后进先出（LIFO）结构</li>
+<li>同步执行</li>
+<li>栈溢出：当超过最大调用栈大小时会抛出错误</li>
+</ol>
+<h3 id="调用栈示例"><a href="#调用栈示例" class="headerlink" title="调用栈示例"></a>调用栈示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">first</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;First&quot;</span>);</span><br><span class="line">  <span class="title function_">second</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">second</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Second&quot;</span>);</span><br><span class="line">  <span class="title function_">third</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">third</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Third&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">first</span>();</span><br></pre></td></tr></table></figure>
+
+<p><strong><em>调用栈变化</em></strong>：</p>
+<ol>
+<li>first() 入栈</li>
+<li>second() 入栈</li>
+<li>third() 入栈</li>
+<li>third() 出栈</li>
+<li>second() 出栈</li>
+<li>first() 出栈</li>
+</ol>
+<h3 id="栈溢出示例"><a href="#栈溢出示例" class="headerlink" title="栈溢出示例"></a>栈溢出示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">recursive</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title function_">recursive</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">recursive</span>(); <span class="comment">// Uncaught RangeError: Maximum call stack size exceeded</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="事件循环与任务队列"><a href="#事件循环与任务队列" class="headerlink" title="事件循环与任务队列"></a>事件循环与任务队列</h2><h3 id="JavaScript-运行时模型"><a href="#JavaScript-运行时模型" class="headerlink" title="JavaScript 运行时模型"></a>JavaScript 运行时模型</h3><ol>
+<li>调用栈：同步代码执行</li>
+<li>Web APIs：浏览器提供的异步功能（setTimeout, DOM 事件等）</li>
+<li>任务队列：回调函数等待执行</li>
+<li>事件循环：监控调用栈和任务队列</li>
+</ol>
+<h3 id="任务队列类型"><a href="#任务队列类型" class="headerlink" title="任务队列类型"></a>任务队列类型</h3><ol>
+<li><p>宏任务队列（Macrotask Queue）</p>
+<ul>
+<li>setTimeout</li>
+<li>setInterval</li>
+<li>setImmediate (Node.js)</li>
+<li>I&#x2F;O 操作</li>
+<li>UI 渲染</li>
+<li>事件回调</li>
+</ul>
+</li>
+<li><p>微任务队列（Microtask Queue）</p>
+<ul>
+<li>Promise.then&#x2F;catch&#x2F;finally</li>
+<li>MutationObserver</li>
+<li>process.nextTick (Node.js)</li>
+</ul>
+</li>
+</ol>
+<h3 id="事件循环流程"><a href="#事件循环流程" class="headerlink" title="事件循环流程"></a>事件循环流程</h3><ol>
+<li>执行同步代码（调用栈）</li>
+<li>遇到异步任务，交给 Web APIs 处理</li>
+<li>同步代码执行完毕，调用栈为空</li>
+<li>检查微任务队列，执行所有微任务</li>
+<li>如有必要，进行 UI 渲染</li>
+<li>从宏任务队列取出一个任务执行</li>
+<li>重复上述过程</li>
+</ol>
+<h3 id="执行顺序示例"><a href="#执行顺序示例" class="headerlink" title="执行顺序示例"></a>执行顺序示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script start&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setTimeout&quot;</span>);</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>()</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 1&quot;</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 2&quot;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script end&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出顺序:</span></span><br><span class="line"><span class="comment">// Script start</span></span><br><span class="line"><span class="comment">// Script end</span></span><br><span class="line"><span class="comment">// Promise 1</span></span><br><span class="line"><span class="comment">// Promise 2</span></span><br><span class="line"><span class="comment">// setTimeout</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>JavaScript 基础知识</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>JavaScript 基础知识</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web安全必修课-XSS与CSRF攻击</title>
+    <url>/2022/07/05/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-XSS%E4%B8%8ECSRF%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h2 id="一、XSS-攻击（跨站脚本攻击）"><a href="#一、XSS-攻击（跨站脚本攻击）" class="headerlink" title="一、XSS 攻击（跨站脚本攻击）"></a>一、XSS 攻击（跨站脚本攻击）</h2><h3 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>想象在论坛的留言板里，攻击者提交的内容是：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">  盗取用户cookie的代码;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当其他用户浏览这条留言时，恶意脚本就会在他们的浏览器中执行，就像在真实的网站中运行一样</p>
+<h3 id="三种常见类型"><a href="#三种常见类型" class="headerlink" title="三种常见类型"></a>三种常见类型</h3><h4 id="1-反射型-XSS（临时攻击）"><a href="#1-反射型-XSS（临时攻击）" class="headerlink" title="1. 反射型 XSS（临时攻击）"></a>1. 反射型 XSS（临时攻击）</h4><ul>
+<li>通过 URL 参数注入恶意脚本</li>
+</ul>
+<ul>
+<li>示例链接：</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">https://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-存储型-XSS（持久化攻击）"><a href="#2-存储型-XSS（持久化攻击）" class="headerlink" title="2. 存储型 XSS（持久化攻击）"></a>2. 存储型 XSS（持久化攻击）</h4><ul>
+<li><p>恶意脚本被保存到数据库</p>
+</li>
+<li><p>常见场景：用户评论、私信内容</p>
+</li>
+</ul>
+<h4 id="3-DOM-型-XSS（纯前端攻击）"><a href="#3-DOM-型-XSS（纯前端攻击）" class="headerlink" title="3. DOM 型 XSS（纯前端攻击）"></a>3. DOM 型 XSS（纯前端攻击）</h4><ul>
+<li><p>不经过服务器，前端直接操作 DOM 时触发</p>
+</li>
+<li><p>示例代码</p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从URL获取参数直接插入页面</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">write</span>(location.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
+<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
+</blockquote>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>HttpOnly - 重要安全属性，作用是：</p>
+<ul>
+<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
+<li>有效防范 XSS 攻击窃取 Cookie</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Secure - 安全传输属性，作用是：</p>
+<ul>
+<li>该 Cookie 只能通过 HTTPS 协议传输</li>
+<li>防止在 HTTP 明文传输中被窃听</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>
+<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><ol>
+<li>用户登录信任网站 A</li>
+<li>网站 A 下发身份 Cookie</li>
+<li>用户访问恶意网站 B</li>
+<li>网站 B 诱导浏览器向网站 A 发起请求</li>
+<li>浏览器自动携带 Cookie 完成请求</li>
+</ol>
+<h3 id="防御方案-1"><a href="#防御方案-1" class="headerlink" title="防御方案"></a>防御方案</h3><ol>
+<li>CSRF Token 验证</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端生成Token</span></span><br><span class="line"><span class="keyword">const</span> csrfToken = crypto.<span class="title function_">randomBytes</span>(<span class="number">16</span>).<span class="title function_">toString</span>(<span class="string">&#x27;hex&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 前端表单携带Token</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;/transfer&quot;</span> <span class="attr">method</span>=<span class="string">&quot;POST&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;_csrf&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&lt;%= csrfToken %&gt;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="comment">&lt;!-- 其他表单字段 --&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">// 服务端中间件验证</span></span><br><span class="line"><span class="language-xml">app.post(&#x27;/transfer&#x27;, (req, res) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">  if(req.body._csrf !== req.session.csrfToken) &#123;</span></span><br><span class="line"><span class="language-xml">    return res.status(403).send(&#x27;CSRF验证失败&#x27;);</span></span><br><span class="line"><span class="language-xml">  &#125;</span></span><br><span class="line"><span class="language-xml">  // 处理业务逻辑</span></span><br><span class="line"><span class="language-xml">&#125;);</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>SameSite Cookie 属性</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">SameSite</span>=<span class="title class_">Lax</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Strict：完全禁止第三方 Cookie</li>
+<li>Lax：允许部分安全请求（默认值）</li>
+<li>None：关闭保护（需配合 Secure）</li>
+</ul>
+<ol start="3">
+<li>验证请求来源</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 检查Referer头</span></span><br><span class="line"><span class="keyword">if</span> (</span><br><span class="line">  req.<span class="property">headers</span>.<span class="property">referer</span> &amp;&amp;</span><br><span class="line">  !req.<span class="property">headers</span>.<span class="property">referer</span>.<span class="title function_">startsWith</span>(<span class="string">&quot;https://trusted-domain.com&quot;</span>)</span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;非法请求来源&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>双重 Cookie 验证</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端在请求头中携带Cookie信息</span></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/transfer&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&quot;X-CSRF-TOKEN&quot;</span>: <span class="title function_">getCookie</span>(<span class="string">&quot;csrfToken&quot;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 服务端比对Cookie与Header中的值</span></span><br><span class="line"><span class="keyword">if</span> (req.<span class="property">headers</span>[<span class="string">&quot;x-csrf-token&quot;</span>] !== req.<span class="property">cookies</span>.<span class="property">csrfToken</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> res.<span class="title function_">status</span>(<span class="number">403</span>).<span class="title function_">send</span>(<span class="string">&quot;验证失败&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、实战防御组合拳"><a href="#三、实战防御组合拳" class="headerlink" title="三、实战防御组合拳"></a>三、实战防御组合拳</h2><h3 id="推荐防御策略"><a href="#推荐防御策略" class="headerlink" title="推荐防御策略"></a>推荐防御策略</h3><h4 id="1-XSS-综合防御"><a href="#1-XSS-综合防御" class="headerlink" title="1. XSS 综合防御"></a>1. XSS 综合防御</h4><ul>
+<li>输入校验 + 输出转义 + CSP 策略 + HttpOnly</li>
+</ul>
+<h4 id="2-CSRF-黄金组合"><a href="#2-CSRF-黄金组合" class="headerlink" title="2. CSRF 黄金组合"></a>2. CSRF 黄金组合</h4><ul>
+<li>CSRF Token + SameSite Cookie</li>
+</ul>
+<h3 id="现代框架最佳实践"><a href="#现代框架最佳实践" class="headerlink" title="现代框架最佳实践"></a>现代框架最佳实践</h3><ol>
+<li>React 项目配置 CSP</li>
+</ol>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span></span></span><br><span class="line"><span class="tag">  <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27;; </span></span></span><br><span class="line"><span class="string"><span class="tag">               script-src &#x27;self&#x27; &#x27;unsafe-eval&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               img-src https://*;&quot;</span></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>Express 中间件配置</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> csrf = <span class="built_in">require</span>(<span class="string">&quot;csurf&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> cookieParser = <span class="built_in">require</span>(<span class="string">&quot;cookie-parser&quot;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">cookieParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">csrf</span>(&#123; <span class="attr">cookie</span>: <span class="literal">true</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取CSRF Token</span></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&quot;/csrf-token&quot;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">  res.<span class="title function_">json</span>(&#123; <span class="attr">csrfToken</span>: req.<span class="title function_">csrfToken</span>() &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="渗透测试工具推荐"><a href="#渗透测试工具推荐" class="headerlink" title="渗透测试工具推荐"></a>渗透测试工具推荐</h3><ol>
+<li>使用 OWASP ZAP 自动扫描漏洞</li>
+<li>通过 Postman 手动测试 API 接口</li>
+<li>利用 Burp Suite 进行高级安全测试</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户访问恶意网站] --&gt; B[触发隐藏请求]</span><br><span class="line">    B --&gt; C[携带合法Cookie]</span><br><span class="line">    C --&gt; D[服务端执行危险操作]</span><br><span class="line">    D --&gt; E[攻击完成]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>防御措施实施后，建议定期使用自动化工具进行安全扫描，并建立漏洞响应机制。安全防护需要持&gt; 续维护，而非一劳永逸！</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Web安全</tag>
+        <tag>XSS与CSRF攻击</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Web安全必修课-Cookie的食用指南 🍪</title>
     <url>/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/</url>
     <content><![CDATA[<h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
@@ -138,177 +566,138 @@
       </tags>
   </entry>
   <entry>
-    <title>手写 Promise 实现指南：从规范到代码实践</title>
-    <url>/2022/05/02/ES6-Promise/</url>
-    <content><![CDATA[<h2 id="一-Promise-A-规范与需求背景"><a href="#一-Promise-A-规范与需求背景" class="headerlink" title="一. Promise&#x2F;A+ 规范与需求背景"></a>一. Promise&#x2F;A+ 规范与需求背景</h2><h3 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h3><p>在 JavaScript 的异步编程中，传统的回调函数存在 “回调地狱”（层层嵌套难以维护）和 “错误处理困难” 的问题。例如：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">fs.<span class="title function_">readFile</span>(<span class="string">&quot;1.txt&quot;</span>, <span class="function">(<span class="params">err, data1</span>) =&gt;</span> &#123;</span><br><span class="line">  fs.<span class="title function_">readFile</span>(data1, <span class="function">(<span class="params">err, data2</span>) =&gt;</span> &#123;</span><br><span class="line">    fs.<span class="title function_">readFile</span>(data2, <span class="function">(<span class="params">err, data3</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/* ... */</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p>Promise 应运而生，通过链式调用 .then() 将嵌套转为线性结构，同时提供统一的错误捕获机制</p>
-<h3 id="Promise-A-规范核心"><a href="#Promise-A-规范核心" class="headerlink" title="Promise&#x2F;A+ 规范核心"></a>Promise&#x2F;A+ 规范核心</h3><h3 id="1-三种状态"><a href="#1-三种状态" class="headerlink" title="1. 三种状态"></a>1. 三种状态</h3><ul>
-<li><strong>Pending</strong>：初始状态，可转为 Fulfilled 或 Rejected。</li>
-<li><strong>Fulfilled</strong>：成功态，必须有不可变的值（value）。</li>
-<li><strong>Rejected</strong>：失败态，必须有不可变的原因（reason）。</li>
-</ul>
-<h3 id="2-then-方法行为"><a href="#2-then-方法行为" class="headerlink" title="2. then 方法行为"></a>2. then 方法行为</h3><ul>
-<li>接受 <code>onFulfilled</code> 和 <code>onRejected</code> 两个回调（可选）。</li>
-<li>回调必须异步执行（如 <code>setTimeout</code> 或微任务）。</li>
-<li>可被多次调用，按注册顺序执行。</li>
-<li>必须返回新 Promise，支持链式调用。</li>
-</ul>
-<h3 id="3-解决过程（Resolution-Procedure）"><a href="#3-解决过程（Resolution-Procedure）" class="headerlink" title="3. 解决过程（Resolution Procedure）"></a>3. 解决过程（Resolution Procedure）</h3><ul>
-<li>若回调返回值是 Promise，则等待其状态；若是普通值，则直接传递。</li>
-<li>处理循环引用（如返回自身会报错）。</li>
-</ul>
-<h2 id="二-手写-Promise-实现步骤"><a href="#二-手写-Promise-实现步骤" class="headerlink" title="二. 手写 Promise 实现步骤"></a>二. 手写 Promise 实现步骤</h2><h3 id="Step-1：基本框架与状态管理"><a href="#Step-1：基本框架与状态管理" class="headerlink" title="Step 1：基本框架与状态管理"></a>Step 1：基本框架与状态管理</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>()); <span class="comment">// 触发回调</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject); <span class="comment">// 立即执行</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="title function_">reject</span>(e); <span class="comment">// 捕获同步错误</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Step-2：实现-then-方法"><a href="#Step-2：实现-then-方法" class="headerlink" title="Step 2：实现 then 方法"></a>Step 2：实现 then 方法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">  <span class="comment">// 处理值穿透（参数非函数时提供默认值）</span></span><br><span class="line">  onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&#x27;function&#x27;</span> ? onFulfilled : <span class="function"><span class="params">v</span> =&gt;</span> v;</span><br><span class="line">  onRejected = <span class="keyword">typeof</span> onRejected === <span class="string">&#x27;function&#x27;</span> ? onRejected : <span class="function"><span class="params">err</span> =&gt;</span> &#123; <span class="keyword">throw</span> err; &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123; <span class="comment">// 确保异步执行</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">          <span class="title function_">reject</span>(e);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;, <span class="number">0</span>);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 类似处理 handleRejected...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;fulfilled&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleFulfilled</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;rejected&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleRejected</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// pending 状态，存入队列</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> promise2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Step-3：解决过程与链式调用"><a href="#Step-3：解决过程与链式调用" class="headerlink" title="Step 3：解决过程与链式调用"></a>Step 3：解决过程与链式调用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&#x27;循环引用&#x27;</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject); <span class="comment">// 等待 x 的状态</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x); <span class="comment">// 普通值直接传递</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Step-4：错误冒泡与-catch-方法"><a href="#Step-4：错误冒泡与-catch-方法" class="headerlink" title="Step 4：错误冒泡与 catch 方法"></a>Step 4：错误冒泡与 catch 方法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="完整的手写代码"><a href="#完整的手写代码" class="headerlink" title="完整的手写代码"></a>完整的手写代码</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义Promise类，实现了基本的Promise功能，包括链式调用、异步处理和错误捕获。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 构造函数，接收一个执行器函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">executor</span> - 执行器函数，接收两个参数：resolve和reject。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>; <span class="comment">// 初始状态，Promise的初始状态为pending</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>; <span class="comment">// 成功值，当Promise状态变为fulfilled时，存储成功的值</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>; <span class="comment">// 失败原因，当Promise状态变为rejected时，存储失败的原因</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列，存储在Promise状态变为fulfilled时需要执行的回调函数</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列，存储在Promise状态变为rejected时需要执行的回调函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 解决函数，用于将Promise状态从pending变为fulfilled。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">value</span> - 成功的值。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为fulfilled</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="comment">// 执行所有成功回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拒绝函数，用于将Promise状态从pending变为rejected。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">reason</span> - 失败的原因。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为rejected</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="comment">// 执行所有失败回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 立即执行执行器</span></span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="comment">// 捕获同步错误</span></span><br><span class="line">      <span class="title function_">reject</span>(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加成功和失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onFulfilled</span> - 成功回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理值穿透，默认函数</span></span><br><span class="line">    onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&quot;function&quot;</span> ? onFulfilled : <span class="function">(<span class="params">v</span>) =&gt;</span> v;</span><br><span class="line">    onRejected =</span><br><span class="line">      <span class="keyword">typeof</span> onRejected === <span class="string">&quot;function&quot;</span></span><br><span class="line">        ? onRejected</span><br><span class="line">        : <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> err;</span><br><span class="line">          &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理成功回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 确保异步执行</span></span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理失败回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleRejected</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onRejected</span>(<span class="variable language_">this</span>.<span class="property">reason</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;fulfilled&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleFulfilled</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;rejected&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleRejected</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// pending状态，存入回调队列</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> promise2; <span class="comment">// 返回新Promise实现链式调用</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 解析Promise结果，处理循环引用和嵌套Promise。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">MyPromise</span>&#125; <span class="variable">promise2</span> - 新的Promise实例。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">x</span> - 回调函数的返回值。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">resolve</span> - 解决函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">reject</span> - 拒绝函数。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">    <span class="comment">// 防止 const p = new Promise.then(() =&gt; p) 会导致死循环</span></span><br><span class="line">    <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">      <span class="comment">// 循环引用检测</span></span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 处理Promise对象 （当then 返回的是promise，</span></span><br><span class="line">    <span class="comment">// 如：此处也是一个异步操作时，为了保证后一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">    <span class="comment">// 如不处理后一个then接受的会是一个Promise对象，进而无法实现链式调用）</span></span><br><span class="line">    <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">      x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 普通值直接resolve</span></span><br><span class="line">      <span class="title function_">resolve</span>(x);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="三-测试用例与验证"><a href="#三-测试用例与验证" class="headerlink" title="三. 测试用例与验证"></a>三. 测试用例与验证</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试链式调用与异步</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试错误捕获</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(err)); <span class="comment">// 捕获同步错误</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="四-扩展与总结"><a href="#四-扩展与总结" class="headerlink" title="四. 扩展与总结"></a>四. 扩展与总结</h2><h3 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h3><ul>
-<li><p>静态方法：实现 Promise.all（所有成功）、Promise.race（竞速）11。</p>
-</li>
-<li><p>微任务优化：用 MutationObserver 替代 setTimeout 实现更高效的异步调度。</p>
-</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Promise 通过状态机、回调队列和链式调用，将异步逻辑线性化。手写实现需严格遵循 Promise&#x2F;A+ 规范，核心在于 then 的异步处理和解决过程的递归解析。理解这一机制有助于掌握 JavaScript 异步编程的精髓</p>
-<h2 id="补充-（详解-测试用例-代码执行过程）"><a href="#补充-（详解-测试用例-代码执行过程）" class="headerlink" title="补充 （详解 测试用例 代码执行过程）"></a>补充 （详解 测试用例 代码执行过程）</h2><h3 id="测试用例："><a href="#测试用例：" class="headerlink" title="测试用例："></a>测试用例：</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-Promise-初始化"><a href="#1-Promise-初始化" class="headerlink" title="1. Promise 初始化"></a>1. Promise 初始化</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>创建 MyPromise 实例，立即执行 executor 函数</li>
-<li>遇到 setTimeout ，将回调函数放入宏任务队列，1 秒后执行</li>
-<li>此时 Promise 状态为 pending ，主线程继续执行后续代码</li>
-</ol>
-<h2 id="2-第一个-then-方法调用"><a href="#2-第一个-then-方法调用" class="headerlink" title="2. 第一个 then 方法调用"></a>2. 第一个 then 方法调用</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res);</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>调用 then 方法时 Promise 仍处于 pending 状态</li>
-<li>将回调函数 (res) &#x3D;&gt; { console… } 存入 onFulfilledCallbacks 队列</li>
-<li>then 方法返回一个新的 Promise (promise2)</li>
-</ol>
-<h2 id="3-第二个-then-方法调用"><a href="#3-第二个-then-方法调用" class="headerlink" title="3. 第二个 then 方法调用"></a>3. 第二个 then 方法调用</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res));</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>继续在 promise2 上调用 then</li>
-<li>由于 promise2 也处于 pending 状态，将回调存入它的 onFulfilledCallbacks</li>
-<li>返回第三个 Promise (promise3)</li>
-</ol>
-<h2 id="4-1-秒后-setTimeout-回调执行"><a href="#4-1-秒后-setTimeout-回调执行" class="headerlink" title="4. 1 秒后 setTimeout 回调执行"></a>4. 1 秒后 setTimeout 回调执行</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">() =&gt; <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>调用 resolve(“success”) ，将第一个 Promise 状态改为 fulfilled</li>
-<li>设置 this.value &#x3D; “success”</li>
-<li>执行 onFulfilledCallbacks 中的回调（第一个 then 的回调）</li>
-</ol>
-<h2 id="5-执行第一个-then-的回调"><a href="#5-执行第一个-then-的回调" class="headerlink" title="5. 执行第一个 then 的回调"></a>5. 执行第一个 then 的回调</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(res) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success&quot;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>创建新的 Promise (promise4)，立即执行其 executor</li>
-<li>同步调用 resolve(“success again”) ，promise4 状态变为 fulfilled</li>
-<li>这个返回值会通过 resolvePromise 传递给 promise2</li>
-</ol>
-<h2 id="6-执行第二个-then-的回调"><a href="#6-执行第二个-then-的回调" class="headerlink" title="6. 执行第二个 then 的回调"></a>6. 执行第二个 then 的回调</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(res) =&gt; <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success again&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>执行过程：</strong></p>
-<ol>
-<li>promise2 的 resolvePromise 处理返回的 promise4</li>
-<li>由于 promise4 已经是 fulfilled 状态，立即执行第二个 then 的回调</li>
-<li>输出拼接后的字符串 “success again”</li>
-</ol>
-<h2 id="完整执行时序图"><a href="#完整执行时序图" class="headerlink" title="完整执行时序图"></a>完整执行时序图</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">主线程:</span><br><span class="line">1. 创建 Promise → 设置 setTimeout → 注册 then1 → 注册 then2</span><br><span class="line">   (所有 then 回调都存入队列)</span><br><span class="line"></span><br><span class="line">宏任务队列:</span><br><span class="line">[ 1秒后:</span><br><span class="line">  1. 执行 setTimeout 回调 → resolve → 触发 then1 回调</span><br><span class="line">  2. then1 返回新 Promise → 触发 then2 回调</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-
-<h2 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h2><ol>
-<li>异步机制 ：通过 setTimeout 实现真正的异步，符合 Promise&#x2F;A+ 规范</li>
-<li>链式调用 ：每个 then 都返回新 Promise，形成调用链</li>
-<li>值传递 ：前一个 then 的返回值会作为参数传给下一个 then</li>
-<li>状态管理 ：<ul>
-<li>初始 Promise 从 pending → fulfilled</li>
-<li>then 返回的新 Promise 根据回调执行结果改变状态</li>
-</ul>
-</li>
-</ol>
-<h2 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h2><h3 id="1-resolvePromise-的作用"><a href="#1-resolvePromise-的作用" class="headerlink" title="1. resolvePromise 的作用"></a>1. resolvePromise 的作用</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 循环引用检测</span></span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 处理返回的Promise对象</span></span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 3. 处理普通值</span></span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="详细解析："><a href="#详细解析：" class="headerlink" title="详细解析："></a>详细解析：</h4><ol>
-<li><p>循环引用检测</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+    <title>Web安全必修课-跨域知多少</title>
+    <url>/2022/07/07/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E8%B7%A8%E5%9F%9F%E7%9F%A5%E5%A4%9A%E5%B0%91/</url>
+    <content><![CDATA[<h2 id="一、跨域问题的背景：为什么浏览器要“多管闲事”？"><a href="#一、跨域问题的背景：为什么浏览器要“多管闲事”？" class="headerlink" title="一、跨域问题的背景：为什么浏览器要“多管闲事”？"></a>一、跨域问题的背景：为什么浏览器要“多管闲事”？</h2><p>假设你正在开发一个天气预报网站，前端页面部署在 <a href="https://weather.com,需要从/">https://weather.com，需要从</a> <a href="https://api.weather.gov/">https://api.weather.gov</a> 获取天气数据。当你用 JavaScript 发起请求时，浏览器会直接报错：<br>Access to XMLHttpRequest has been blocked by CORS policy<br>这就是经典的跨域问题。</p>
+<h3 id="1-1-浏览器为什么要限制跨域？"><a href="#1-1-浏览器为什么要限制跨域？" class="headerlink" title="1.1 浏览器为什么要限制跨域？"></a>1.1 浏览器为什么要限制跨域？</h3><p>浏览器的核心安全策略——**同源策略（Same-Origin Policy）**规定：<br>“只有协议、域名、端口完全相同的两个页面，才允许直接共享资源”。<br>比如 <a href="https://a.com/">https://a.com</a> 和 <a href="https://b.com/">https://b.com</a> 就是不同源，无法直接通过 AJAX 请求数据。</p>
+<h3 id="1-2-为什么要这样设计？"><a href="#1-2-为什么要这样设计？" class="headerlink" title="1.2 为什么要这样设计？"></a>1.2 为什么要这样设计？</h3><p>假设没有同源策略，恶意网站可以随意读取你的 Gmail 邮件、窃取银行 Cookie，后果不堪设想。同源策略像一个“保安”，默认阻止跨域请求，保护用户隐私和安全。</p>
+<hr>
+<h2 id="二、什么是跨域？这些情况都算！"><a href="#二、什么是跨域？这些情况都算！" class="headerlink" title="二、什么是跨域？这些情况都算！"></a>二、什么是跨域？这些情况都算！</h2><p>只要以下任意一项不同，浏览器就会判定为跨域：</p>
 <ul>
-<li>防止类似 promise.then(() &#x3D;&gt; promise) 的循环引用</li>
-<li>如果检测到循环引用，直接 reject 一个 TypeError</li>
+<li>协议不同（http vs https）</li>
+<li>域名不同（a.com vs b.com）</li>
+<li>端口不同（80 vs 8080）</li>
 </ul>
-</li>
-<li><p>处理 Promise 对象</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">  <span class="comment">// 这里的x是上一个then的返回值,此处为一个Promise，为了确保下一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">  <span class="comment">// 需要将外层的Promise对象的resoleve和reject传入，进而捕获此处异步操作的返回值,便于传递给下一个then</span></span><br><span class="line">  x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>请求方地址</th>
+<th>目标地址</th>
+<th>是否跨域</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="http://a.com/">http://a.com</a></td>
+<td><a href="https://a.com/">https://a.com</a></td>
+<td>是</td>
+<td>协议不同（HTTP vs HTTPS）</td>
+</tr>
+<tr>
+<td><a href="http://a.com/">http://a.com</a></td>
+<td><a href="http://b.com/">http://b.com</a></td>
+<td>是</td>
+<td>域名不同</td>
+</tr>
+<tr>
+<td><a href="http://a.com/">http://a.com:80</a></td>
+<td><a href="http://a.com:8080/">http://a.com:8080</a></td>
+<td>是</td>
+<td>端口不同</td>
+</tr>
+<tr>
+<td><a href="http://a.com/api">http://a.com/api</a></td>
+<td><a href="http://a.com/">http://a.com</a></td>
+<td>否</td>
+<td>同源</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、前端如何解决跨域问题？5-种常用方案"><a href="#三、前端如何解决跨域问题？5-种常用方案" class="headerlink" title="三、前端如何解决跨域问题？5 种常用方案"></a>三、前端如何解决跨域问题？5 种常用方案</h2><h3 id="3-1-方案一：CORS（跨域资源共享）——最正统的解决方案"><a href="#3-1-方案一：CORS（跨域资源共享）——最正统的解决方案" class="headerlink" title="3.1 方案一：CORS（跨域资源共享）——最正统的解决方案"></a>3.1 方案一：CORS（跨域资源共享）——最正统的解决方案</h3><p>**核心思想：服务端设置响应头，告诉浏览器“允许哪些域访问我”。<br>适用场景：生产环境首选，需后端配合。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 后端示例代码（Node.js）</span></span><br><span class="line">response.<span class="title function_">setHeader</span>(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;https://weather.com&quot;</span>); <span class="comment">// 允许特定域</span></span><br><span class="line"><span class="comment">// 或允许所有域（慎用）</span></span><br><span class="line">response.<span class="title function_">setHeader</span>(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br></pre></td></tr></table></figure>
 
+<p>CORS 两种请求类型：</p>
 <ul>
-<li>当回调函数返回的是另一个 Promise 时（如 return new MyPromise(…) ）</li>
-<li>会等待这个 Promise 完成，然后将其结果传递给外层 Promise</li>
-<li>例如： return new MyPromise(resolve &#x3D;&gt; resolve(42)) 会等待内部 Promise 完成</li>
-</ul>
+<li><p>简单请求：直接发送（如 GET&#x2F;POST 且无自定义头）</p>
 </li>
-<li><p>处理普通值</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(x);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>当回调函数返回非 Promise 值时（如数字、字符串、对象等）</li>
-<li>直接将该值作为外层 Promise 的解决值</li>
-<li>例如： return 42 会直接 resolve(42)</li>
-</ul>
+<li><p>预检请求：先发 OPTIONS 请求探路（如 PUT&#x2F;DELETE 或带自定义头）</p>
 </li>
+</ul>
+<hr>
+<h3 id="3-2-方案二：代理服务器——开发环境神器"><a href="#3-2-方案二：代理服务器——开发环境神器" class="headerlink" title="3.2 方案二：代理服务器——开发环境神器"></a>3.2 方案二：代理服务器——开发环境神器</h3><p><strong>核心思想：前端请求同域代理，代理转发到目标服务器，避开浏览器限制。</strong></p>
+<p>实现方式：</p>
+<ol>
+<li>Webpack DevServer 代理（Vue&#x2F;React 项目常用，开发环境时使用）</li>
 </ol>
-<h4 id="关键作用："><a href="#关键作用：" class="headerlink" title="关键作用："></a>关键作用：</h4><ol>
-<li>实现链式调用的核心 ：处理 then 方法回调函数的返回值</li>
-<li>支持 Promise 嵌套 ：能够正确处理返回 Promise 的情况</li>
-<li>类型安全 ：防止循环引用导致的无限递归</li>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">devServer</span>: &#123;</span><br><span class="line">    <span class="attr">proxy</span>: &#123;</span><br><span class="line">      <span class="string">&quot;/api&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">target</span>: <span class="string">&quot;https://api.weather.gov&quot;</span>,</span><br><span class="line">        <span class="attr">changeOrigin</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">pathRewrite</span>: &#123; <span class="string">&quot;^/api&quot;</span>: <span class="string">&quot;&quot;</span> &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>Nginx 反向代理（生产环境部署）</li>
 </ol>
-<h4 id="实际应用示例："><a href="#实际应用示例：" class="headerlink" title="实际应用示例："></a>实际应用示例：</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>))</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">r</span>) =&gt;</span> <span class="title function_">r</span>(res + <span class="number">1</span>)); <span class="comment">// 返回Promise</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">return</span> res + <span class="number">1</span>; <span class="comment">// 返回普通值</span></span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">location</span> /api/ &#123;</span><br><span class="line">  <span class="attribute">proxy_pass</span> https://api.weather.gov/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个方法确保了 Promise 链式调用时，无论回调函数返回的是普通值还是 Promise 对象，都能正确传递和处理值。</p>
-<h3 id="2-onFulfilled-和-onRejected-为什么必须异步执行"><a href="#2-onFulfilled-和-onRejected-为什么必须异步执行" class="headerlink" title="2. onFulfilled 和 onRejected 为什么必须异步执行"></a>2. onFulfilled 和 onRejected 为什么必须异步执行</h3><h4 id="规范要求"><a href="#规范要求" class="headerlink" title="规范要求"></a>规范要求</h4><ul>
-<li>Promise&#x2F;A+ 规范 2.2.4 条明确规定：onFulfilled 和 onRejected 必须异步执行</li>
-<li>即使 Promise 已经处于 resolved 状态，then 方法的回调也必须异步调用</li>
-</ul>
-<h4 id="执行顺序保证-："><a href="#执行顺序保证-：" class="headerlink" title="执行顺序保证 ："></a>执行顺序保证 ：</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应该是 3 -&gt; 2</span></span><br><span class="line"><span class="comment">// 如果同步执行则会输出 2 -&gt; 3</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="3-3-方案三：JSONP——老式技巧的巧妙利用"><a href="#3-3-方案三：JSONP——老式技巧的巧妙利用" class="headerlink" title="3.3 方案三：JSONP——老式技巧的巧妙利用"></a>3.3 方案三：JSONP——老式技巧的巧妙利用</h3><p><strong>核心思想：利用 <code>&lt;script&gt;</code> 标签无跨域限制的特性。</strong><br><strong>缺点：仅支持 GET 请求，安全性低（需完全信任服务端）。</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端代码</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">handleWeather</span>(<span class="params">data</span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到数据:&quot;</span>, data);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> script = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;script&quot;</span>);</span><br><span class="line">script.<span class="property">src</span> = <span class="string">&quot;https://api.weather.gov?callback=handleWeather&quot;</span>;</span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">appendChild</span>(script);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 后端需返回：handleWeather(&#123; temperature: 25 &#125;);</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="一致性保证"><a href="#一致性保证" class="headerlink" title="一致性保证"></a>一致性保证</h4><ul>
-<li>无论 Promise 是立即解决还是稍后解决，<code>then</code> 回调的执行时机保持一致。</li>
-<li>避免出现有时同步有时异步的不确定行为。</li>
-</ul>
-<h4 id="避免潜在问题"><a href="#避免潜在问题" class="headerlink" title="避免潜在问题"></a>避免潜在问题</h4><ul>
-<li>同步执行可能导致调用栈过深（如递归调用 <code>then</code> 方法时）。</li>
-<li>同步执行可能打断当前执行的代码流程，导致意外行为。</li>
-</ul>
-<h4 id="微任务机制"><a href="#微任务机制" class="headerlink" title="微任务机制"></a>微任务机制</h4><ul>
-<li>原生 Promise 使用微任务队列（microtask）实现异步。</li>
-<li>这里用 <code>setTimeout</code> 模拟（虽然它是宏任务），因为简单实现通常不区分微任务和宏任务。</li>
-</ul>
-<p><strong>实际应用场景示例：</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 如果不异步执行，以下代码会有问题：</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">(<span class="params">num</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(num));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应为：1, 2, 4, 3</span></span><br><span class="line"><span class="comment">// 如果同步执行 then 回调，则会输出：1, 3, 2, 4</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="3-4-方案四：WebSocket——双向通信无跨域"><a href="#3-4-方案四：WebSocket——双向通信无跨域" class="headerlink" title="3.4 方案四：WebSocket——双向通信无跨域"></a>3.4 方案四：WebSocket——双向通信无跨域</h3><p><strong>WebSocket 协议不受同源策略限制，适合实时通信场景。</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;wss://api.weather.gov&quot;</span>);</span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<p>因此，虽然同步执行看起来更高效，但为了符合规范和行为一致性，必须使用异步执行。在更完整的实现中，应该使用微任务（如 queueMicrotask 或 process.nextTick）而不是 setTimeout，但这里作为简单实现已经足够。</p>
+<hr>
+<h3 id="3-5-方案五：临时解决方案（仅测试用）"><a href="#3-5-方案五：临时解决方案（仅测试用）" class="headerlink" title="3.5 方案五：临时解决方案（仅测试用）"></a>3.5 方案五：临时解决方案（仅测试用）</h3><p><strong>禁用浏览器安全策略（Chrome 启动参数加 –disable-web-security）</strong><br>⚠️ <strong>警告：仅限本地调试，绝对不要用于日常浏览！</strong></p>
+<hr>
+<h2 id="四、如何选择最佳方案？"><a href="#四、如何选择最佳方案？" class="headerlink" title="四、如何选择最佳方案？"></a>四、如何选择最佳方案？</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适用场景</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CORS</td>
+<td>生产环境</td>
+<td>安全、标准</td>
+<td>需后端配合</td>
+</tr>
+<tr>
+<td>代理服务器</td>
+<td>开发环境</td>
+<td>前端独立解决</td>
+<td>需配置服务器</td>
+</tr>
+<tr>
+<td>JSONP</td>
+<td>旧项目兼容</td>
+<td>无需后端改动</td>
+<td>仅 GET、安全性低</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>实时通信（如聊天室）</td>
+<td>双向通信、高效</td>
+<td>复杂度较高</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><ul>
+<li><strong>优先选择 CORS</strong>：作为标准方案，安全可靠。</li>
+<li><strong>开发环境用代理</strong>：能够避免修改生产代码。</li>
+<li><strong>谨慎使用 JSONP</strong>：仅作为兼容旧系统的备用方案。</li>
+</ul>
+<p>跨域问题本质上是浏览器与服务器之间的“信任协议”，理解其原理后，选择合适的方案即可轻松应对！</p>
 ]]></content>
       <categories>
         <category>技术</category>
         <category>前端</category>
-        <category>ES6</category>
+        <category>Web安全</category>
       </categories>
       <tags>
         <tag>前端</tag>
-        <tag>ES6</tag>
+        <tag>Web安全</tag>
+        <tag>跨域</tag>
       </tags>
   </entry>
   <entry>
@@ -501,138 +890,296 @@
       </tags>
   </entry>
   <entry>
-    <title>Web安全必修课-跨域知多少</title>
-    <url>/2022/07/07/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E8%B7%A8%E5%9F%9F%E7%9F%A5%E5%A4%9A%E5%B0%91/</url>
-    <content><![CDATA[<h2 id="一、跨域问题的背景：为什么浏览器要“多管闲事”？"><a href="#一、跨域问题的背景：为什么浏览器要“多管闲事”？" class="headerlink" title="一、跨域问题的背景：为什么浏览器要“多管闲事”？"></a>一、跨域问题的背景：为什么浏览器要“多管闲事”？</h2><p>假设你正在开发一个天气预报网站，前端页面部署在 <a href="https://weather.com,需要从/">https://weather.com，需要从</a> <a href="https://api.weather.gov/">https://api.weather.gov</a> 获取天气数据。当你用 JavaScript 发起请求时，浏览器会直接报错：<br>Access to XMLHttpRequest has been blocked by CORS policy<br>这就是经典的跨域问题。</p>
-<h3 id="1-1-浏览器为什么要限制跨域？"><a href="#1-1-浏览器为什么要限制跨域？" class="headerlink" title="1.1 浏览器为什么要限制跨域？"></a>1.1 浏览器为什么要限制跨域？</h3><p>浏览器的核心安全策略——**同源策略（Same-Origin Policy）**规定：<br>“只有协议、域名、端口完全相同的两个页面，才允许直接共享资源”。<br>比如 <a href="https://a.com/">https://a.com</a> 和 <a href="https://b.com/">https://b.com</a> 就是不同源，无法直接通过 AJAX 请求数据。</p>
-<h3 id="1-2-为什么要这样设计？"><a href="#1-2-为什么要这样设计？" class="headerlink" title="1.2 为什么要这样设计？"></a>1.2 为什么要这样设计？</h3><p>假设没有同源策略，恶意网站可以随意读取你的 Gmail 邮件、窃取银行 Cookie，后果不堪设想。同源策略像一个“保安”，默认阻止跨域请求，保护用户隐私和安全。</p>
-<hr>
-<h2 id="二、什么是跨域？这些情况都算！"><a href="#二、什么是跨域？这些情况都算！" class="headerlink" title="二、什么是跨域？这些情况都算！"></a>二、什么是跨域？这些情况都算！</h2><p>只要以下任意一项不同，浏览器就会判定为跨域：</p>
+    <title>css预编译器</title>
+    <url>/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/</url>
+    <content><![CDATA[<h3 id="1-Sass-Syntactically-Awesome-Style-Sheets"><a href="#1-Sass-Syntactically-Awesome-Style-Sheets" class="headerlink" title="1. Sass (Syntactically Awesome Style Sheets)"></a>1. Sass (Syntactically Awesome Style Sheets)</h3><p><strong>特点：</strong></p>
 <ul>
-<li>协议不同（http vs https）</li>
-<li>域名不同（a.com vs b.com）</li>
-<li>端口不同（80 vs 8080）</li>
+<li>最成熟的 CSS 预处理器</li>
+<li>提供两种语法格式：<ul>
+<li><code>.scss</code> (Sassy CSS) - 兼容 CSS 语法</li>
+<li><code>.sass</code> - 缩进语法（不使用大括号和分号）</li>
 </ul>
-<table>
+</li>
+<li>需要 Ruby 环境（LibSass 版本不需要）</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">$primary-color</span>: <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="keyword">@mixin</span> border-radius(<span class="variable">$radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">$radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承</span></span><br><span class="line"><span class="selector-class">.message</span> &#123;</span><br><span class="line">  <span class="attribute">border</span>: <span class="number">1px</span> solid <span class="number">#ccc</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-class">.success</span> &#123;</span><br><span class="line">  <span class="keyword">@extend</span> .message;</span><br><span class="line">  <span class="attribute">color</span>: green;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-Less-Leaner-Style-Sheets"><a href="#2-Less-Leaner-Style-Sheets" class="headerlink" title="2.Less (Leaner Style Sheets)"></a>2.Less (Leaner Style Sheets)</h3><p><strong>特点：</strong></p>
+<ul>
+<li>受 Sass 启发，语法更接近原生 CSS</li>
+<li>使用 JavaScript 实现（Node.js）</li>
+<li>浏览器端可直接运行（开发环境）</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">@primary-color:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="selector-class">.border-radius</span>(<span class="variable">@radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运算</span></span><br><span class="line"><span class="variable">@base:</span> <span class="number">5%</span>;</span><br><span class="line"><span class="variable">@filler:</span> <span class="variable">@base</span> * <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-Stylus"><a href="#3-Stylus" class="headerlink" title="3.Stylus"></a>3.Stylus</h3><p><strong>特点：</strong></p>
+<ul>
+<li>语法最灵活（可选括号、分号、冒号）</li>
+<li>Node.js 实现</li>
+<li>强调简洁性和表现力</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量（可省略$）</span></span><br><span class="line">primary-<span class="attribute">color</span> = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span></span><br><span class="line">  <span class="selector-tag">ul</span></span><br><span class="line">    <span class="attribute">margin</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="attribute">border-radius</span>(radius)</span><br><span class="line">  <span class="attribute">border-radius</span> radius</span><br><span class="line"></span><br><span class="line"><span class="comment">// 内置函数</span></span><br><span class="line"><span class="built_in">lighten</span>(color, <span class="number">10%</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="三者异同"><a href="#三者异同" class="headerlink" title="三者异同"></a>三者异同</h3><h4 id="模块化能力对比"><a href="#模块化能力对比" class="headerlink" title="模块化能力对比"></a>模块化能力对比</h4><table>
 <thead>
 <tr>
-<th>请求方地址</th>
-<th>目标地址</th>
-<th>是否跨域</th>
-<th>原因</th>
+<th>模块化特性</th>
+<th>Sass&#x2F;SCSS</th>
+<th>Less</th>
+<th>Stylus</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><a href="http://a.com/">http://a.com</a></td>
-<td><a href="https://a.com/">https://a.com</a></td>
-<td>是</td>
-<td>协议不同（HTTP vs HTTPS）</td>
+<td><strong>基础导入</strong></td>
+<td><code>@import</code> (旧版)</td>
+<td><code>@import</code></td>
+<td><code>@import</code></td>
 </tr>
 <tr>
-<td><a href="http://a.com/">http://a.com</a></td>
-<td><a href="http://b.com/">http://b.com</a></td>
-<td>是</td>
-<td>域名不同</td>
+<td><strong>现代模块系统</strong></td>
+<td><code>@use</code> + <code>@forward</code> (Dart Sass)</td>
+<td>无</td>
+<td>无</td>
 </tr>
 <tr>
-<td><a href="http://a.com/">http://a.com:80</a></td>
-<td><a href="http://a.com:8080/">http://a.com:8080</a></td>
-<td>是</td>
-<td>端口不同</td>
+<td><strong>命名空间</strong></td>
+<td>通过<code>@use</code>引入带前缀</td>
+<td>无原生支持</td>
+<td>无原生支持</td>
 </tr>
 <tr>
-<td><a href="http://a.com/api">http://a.com/api</a></td>
-<td><a href="http://a.com/">http://a.com</a></td>
-<td>否</td>
-<td>同源</td>
+<td><strong>私有成员</strong></td>
+<td><code>-</code>或<code>_</code>前缀变量</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>依赖管理</strong></td>
+<td>自动避免重复导入</td>
+<td>需手动管理</td>
+<td>需手动管理</td>
+</tr>
+<tr>
+<td><strong>局部文件</strong></td>
+<td><code>_partial.scss</code>约定</td>
+<td><code>_partial.less</code>约定</td>
+<td><code>_partial.styl</code>约定</td>
+</tr>
+<tr>
+<td><strong>CSS 输出控制</strong></td>
+<td><code>@forward</code>隐藏&#x2F;暴露特定成员</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>变量覆盖</strong></td>
+<td><code>!default</code>标记可覆盖变量</td>
+<td>后定义覆盖前定义</td>
+<td>后定义覆盖前定义</td>
+</tr>
+<tr>
+<td><strong>跨文件共享</strong></td>
+<td>通过<code>@use</code>共享</td>
+<td>全局自动共享</td>
+<td>全局自动共享</td>
+</tr>
+<tr>
+<td><strong>按需加载</strong></td>
+<td>支持条件导入</td>
+<td>全部导入</td>
+<td>支持条件导入</td>
 </tr>
 </tbody></table>
-<hr>
-<h2 id="三、前端如何解决跨域问题？5-种常用方案"><a href="#三、前端如何解决跨域问题？5-种常用方案" class="headerlink" title="三、前端如何解决跨域问题？5 种常用方案"></a>三、前端如何解决跨域问题？5 种常用方案</h2><h3 id="3-1-方案一：CORS（跨域资源共享）——最正统的解决方案"><a href="#3-1-方案一：CORS（跨域资源共享）——最正统的解决方案" class="headerlink" title="3.1 方案一：CORS（跨域资源共享）——最正统的解决方案"></a>3.1 方案一：CORS（跨域资源共享）——最正统的解决方案</h3><p>**核心思想：服务端设置响应头，告诉浏览器“允许哪些域访问我”。<br>适用场景：生产环境首选，需后端配合。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 后端示例代码（Node.js）</span></span><br><span class="line">response.<span class="title function_">setHeader</span>(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;https://weather.com&quot;</span>); <span class="comment">// 允许特定域</span></span><br><span class="line"><span class="comment">// 或允许所有域（慎用）</span></span><br><span class="line">response.<span class="title function_">setHeader</span>(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;*&quot;</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="典型代码示例"><a href="#典型代码示例" class="headerlink" title="典型代码示例"></a>典型代码示例</h4><p><strong>Sass 模块化 (现代方式)</strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// _variables.scss</span></span><br><span class="line"><span class="variable">$primary</span>: <span class="number">#333</span> !default;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.scss</span></span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;variables&quot;</span> as vars;</span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;buttons&quot;</span> with (</span><br><span class="line">  <span class="variable">$primary</span>: vars.<span class="variable">$primary</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
-<p>CORS 两种请求类型：</p>
-<ul>
-<li><p>简单请求：直接发送（如 GET&#x2F;POST 且无自定义头）</p>
-</li>
-<li><p>预检请求：先发 OPTIONS 请求探路（如 PUT&#x2F;DELETE 或带自定义头）</p>
-</li>
-</ul>
-<hr>
-<h3 id="3-2-方案二：代理服务器——开发环境神器"><a href="#3-2-方案二：代理服务器——开发环境神器" class="headerlink" title="3.2 方案二：代理服务器——开发环境神器"></a>3.2 方案二：代理服务器——开发环境神器</h3><p><strong>核心思想：前端请求同域代理，代理转发到目标服务器，避开浏览器限制。</strong></p>
-<p>实现方式：</p>
+<p><strong>Less 模块化</strong></p>
+<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="comment">// variables.less</span></span><br><span class="line"><span class="variable">@primary:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.less</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;variables&quot;</span>;</span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;buttons&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Stylus 模块化</strong></p>
+<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// variables.styl</span></span><br><span class="line">primary = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// main.styl</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;variables&#x27;</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;buttons&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意:</p>
 <ol>
-<li>Webpack DevServer 代理（Vue&#x2F;React 项目常用，开发环境时使用）</li>
+<li><p>Less 中的变量，在声明中使用时，如果出现多次赋值的情况，其会取最后一次赋值的值</p>
+</li>
+<li><p>Sass&#x2F;Stylus 中的变量，如果出现多次赋值的情况，其会取声明前面最近的一次赋值的值</p>
+</li>
 </ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">devServer</span>: &#123;</span><br><span class="line">    <span class="attr">proxy</span>: &#123;</span><br><span class="line">      <span class="string">&quot;/api&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">target</span>: <span class="string">&quot;https://api.weather.gov&quot;</span>,</span><br><span class="line">        <span class="attr">changeOrigin</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">pathRewrite</span>: &#123; <span class="string">&quot;^/api&quot;</span>: <span class="string">&quot;&quot;</span> &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>Nginx 反向代理（生产环境部署）</li>
-</ol>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">location</span> /api/ &#123;</span><br><span class="line">  <span class="attribute">proxy_pass</span> https://api.weather.gov/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h3 id="3-3-方案三：JSONP——老式技巧的巧妙利用"><a href="#3-3-方案三：JSONP——老式技巧的巧妙利用" class="headerlink" title="3.3 方案三：JSONP——老式技巧的巧妙利用"></a>3.3 方案三：JSONP——老式技巧的巧妙利用</h3><p><strong>核心思想：利用 <code>&lt;script&gt;</code> 标签无跨域限制的特性。</strong><br><strong>缺点：仅支持 GET 请求，安全性低（需完全信任服务端）。</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端代码</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">handleWeather</span>(<span class="params">data</span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到数据:&quot;</span>, data);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> script = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;script&quot;</span>);</span><br><span class="line">script.<span class="property">src</span> = <span class="string">&quot;https://api.weather.gov?callback=handleWeather&quot;</span>;</span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">appendChild</span>(script);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 后端需返回：handleWeather(&#123; temperature: 25 &#125;);</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h3 id="3-4-方案四：WebSocket——双向通信无跨域"><a href="#3-4-方案四：WebSocket——双向通信无跨域" class="headerlink" title="3.4 方案四：WebSocket——双向通信无跨域"></a>3.4 方案四：WebSocket——双向通信无跨域</h3><p><strong>WebSocket 协议不受同源策略限制，适合实时通信场景。</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;wss://api.weather.gov&quot;</span>);</span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h3 id="3-5-方案五：临时解决方案（仅测试用）"><a href="#3-5-方案五：临时解决方案（仅测试用）" class="headerlink" title="3.5 方案五：临时解决方案（仅测试用）"></a>3.5 方案五：临时解决方案（仅测试用）</h3><p><strong>禁用浏览器安全策略（Chrome 启动参数加 –disable-web-security）</strong><br>⚠️ <strong>警告：仅限本地调试，绝对不要用于日常浏览！</strong></p>
-<hr>
-<h2 id="四、如何选择最佳方案？"><a href="#四、如何选择最佳方案？" class="headerlink" title="四、如何选择最佳方案？"></a>四、如何选择最佳方案？</h2><table>
+<h4 id="模块化建议："><a href="#模块化建议：" class="headerlink" title="模块化建议："></a>模块化建议：</h4><ul>
+<li>需要严格隔离 → 选择 Sass 的 @use 系统</li>
+<li>简单项目 → Less&#x2F;Stylus 的基础导入已足够</li>
+<li>变量共享 → Sass 的命名空间最安全</li>
+<li>旧项目维护 → 注意 Sass 的 @import 已被标记为废弃</li>
+</ul>
+<h4 id="三种-CSS-预编译器对比"><a href="#三种-CSS-预编译器对比" class="headerlink" title="三种 CSS 预编译器对比"></a>三种 CSS 预编译器对比</h4><table>
 <thead>
 <tr>
-<th>方案</th>
-<th>适用场景</th>
-<th>优点</th>
-<th>缺点</th>
+<th>对比维度</th>
+<th>Sass&#x2F;SCSS</th>
+<th>Less</th>
+<th>Stylus</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>CORS</td>
-<td>生产环境</td>
-<td>安全、标准</td>
-<td>需后端配合</td>
+<td><strong>诞生时间</strong></td>
+<td>2006 年 (最早期)</td>
+<td>2009 年 (受 Sass 启发)</td>
+<td>2010 年 (最新)</td>
 </tr>
 <tr>
-<td>代理服务器</td>
-<td>开发环境</td>
-<td>前端独立解决</td>
-<td>需配置服务器</td>
+<td><strong>语法风格</strong></td>
+<td><code>.scss</code>兼容 CSS &#x2F; <code>.sass</code>缩进语法</td>
+<td>完全兼容 CSS 语法</td>
+<td>极简语法（符号可选）</td>
 </tr>
 <tr>
-<td>JSONP</td>
-<td>旧项目兼容</td>
-<td>无需后端改动</td>
-<td>仅 GET、安全性低</td>
+<td><strong>运行环境</strong></td>
+<td>Ruby (或 LibSass 的 C 版本)</td>
+<td>JavaScript (Node.js)</td>
+<td>JavaScript (Node.js)</td>
 </tr>
 <tr>
-<td>WebSocket</td>
-<td>实时通信（如聊天室）</td>
-<td>双向通信、高效</td>
-<td>复杂度较高</td>
+<td><strong>变量声明</strong></td>
+<td><code>$var: value;</code></td>
+<td><code>@var: value;</code></td>
+<td><code>var = value</code> 或 <code>var: value</code></td>
+</tr>
+<tr>
+<td><strong>嵌套规则</strong></td>
+<td>支持完整嵌套</td>
+<td>支持完整嵌套</td>
+<td>支持（缩进敏感）</td>
+</tr>
+<tr>
+<td><strong>Mixin</strong></td>
+<td><code>@mixin</code>定义 &#x2F; <code>@include</code>调用</td>
+<td>类式混合（直接调用）</td>
+<td>函数式定义</td>
+</tr>
+<tr>
+<td><strong>继承</strong></td>
+<td><code>@extend</code></td>
+<td>无（通过 Mixins 模拟）</td>
+<td><code>@extend</code></td>
+</tr>
+<tr>
+<td><strong>运算能力</strong></td>
+<td>支持复杂数学运算</td>
+<td>基础运算</td>
+<td>支持运算和内置函数</td>
+</tr>
+<tr>
+<td><strong>条件语句</strong></td>
+<td><code>@if/@else</code></td>
+<td>有限支持（通过 when）</td>
+<td>完整 if&#x2F;else 支持</td>
+</tr>
+<tr>
+<td><strong>循环语句</strong></td>
+<td><code>@for/@each/@while</code></td>
+<td>有限循环</td>
+<td>完整循环支持</td>
+</tr>
+<tr>
+<td><strong>模块化</strong></td>
+<td><code>@use</code>&#x2F;<code>@forward</code> (新版)</td>
+<td><code>@import</code></td>
+<td><code>@import</code></td>
+</tr>
+<tr>
+<td><strong>错误处理</strong></td>
+<td>详细错误报告</td>
+<td>基础错误提示</td>
+<td>相对简洁的错误提示</td>
+</tr>
+<tr>
+<td><strong>编译速度</strong></td>
+<td>较快（LibSass 版本）</td>
+<td>中等</td>
+<td>最快</td>
+</tr>
+<tr>
+<td><strong>社区生态</strong></td>
+<td>最庞大（Bootstrap 早期使用）</td>
+<td>较大（Bootstrap v3 采用）</td>
+<td>较小但活跃</td>
+</tr>
+<tr>
+<td><strong>典型用户</strong></td>
+<td>GitHub, Airbnb, Shopify</td>
+<td>Bootstrap 3, 早期 React 项目</td>
+<td>Vue 生态（早期 Vue-loader 集成）</td>
 </tr>
 </tbody></table>
-<hr>
-<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><ul>
-<li><strong>优先选择 CORS</strong>：作为标准方案，安全可靠。</li>
-<li><strong>开发环境用代理</strong>：能够避免修改生产代码。</li>
-<li><strong>谨慎使用 JSONP</strong>：仅作为兼容旧系统的备用方案。</li>
+<h3 id="特色功能对比"><a href="#特色功能对比" class="headerlink" title="特色功能对比"></a>特色功能对比</h3><table>
+<thead>
+<tr>
+<th>高级功能</th>
+<th>Sass</th>
+<th>Less</th>
+<th>Stylus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>颜色函数</strong></td>
+<td>提供 20+颜色操作函数</td>
+<td>基础颜色混合</td>
+<td>内置 lighten&#x2F;darken 等</td>
+</tr>
+<tr>
+<td><strong>父选择器</strong></td>
+<td><code>&amp;</code> 高度灵活</td>
+<td><code>&amp;</code> 基本功能</td>
+<td><code>&amp;</code> 支持层级引用</td>
+</tr>
+<tr>
+<td><strong>自定义函数</strong></td>
+<td><code>@function</code></td>
+<td>通过插件扩展</td>
+<td>内置函数式支持</td>
+</tr>
+<tr>
+<td><strong>CSS 兼容</strong></td>
+<td>完全兼容 CSS</td>
+<td>完全兼容 CSS</td>
+<td>需要转换语法</td>
+</tr>
+<tr>
+<td><strong>动态导入</strong></td>
+<td>支持运行时导入</td>
+<td>静态导入</td>
+<td>支持条件导入</td>
+</tr>
+<tr>
+<td><strong>源码映射</strong></td>
+<td>完整 sourcemap 支持</td>
+<td>基础支持</td>
+<td>完整支持</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>选择建议：</p>
+<ul>
+<li><strong>企业级项目</strong> → Sass（稳定性和功能完整性）</li>
+<li><strong>前端框架集成</strong> → Less（纯 JS 实现优势）</li>
+<li><strong>开发效率优先</strong> → Stylus（极简语法和快速原型）</li>
+<li><strong>已有技术栈</strong> → 优先匹配现有生态</li>
 </ul>
-<p>跨域问题本质上是浏览器与服务器之间的“信任协议”，理解其原理后，选择合适的方案即可轻松应对！</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>技术</category>
         <category>前端</category>
-        <category>Web安全</category>
+        <category>css</category>
       </categories>
       <tags>
         <tag>前端</tag>
-        <tag>Web安全</tag>
-        <tag>跨域</tag>
+        <tag>css</tag>
       </tags>
   </entry>
   <entry>
@@ -758,129 +1305,6 @@
       <tags>
         <tag>前端</tag>
         <tag>React</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JavaScript 执行上下文、调用栈与队列</title>
-    <url>/2022/05/01/JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E3%80%81%E8%B0%83%E7%94%A8%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/</url>
-    <content><![CDATA[<h2 id="执行上下文"><a href="#执行上下文" class="headerlink" title="执行上下文"></a>执行上下文</h2><h3 id="什么是执行上下文"><a href="#什么是执行上下文" class="headerlink" title="什么是执行上下文"></a>什么是执行上下文</h3><blockquote>
-<p>执行上下文（Execution Context）是 JavaScript 代码被评估和执行时的环境概念。</p>
-</blockquote>
-<h3 id="执行上下文的类型"><a href="#执行上下文的类型" class="headerlink" title="执行上下文的类型"></a>执行上下文的类型</h3><ol>
-<li><p><strong>全局执行上下文</strong></p>
-<ul>
-<li>默认的、基础的执行上下文</li>
-<li>创建全局对象（浏览器中为 <code>window</code>，Node.js 中为 <code>global</code>）</li>
-<li>将 <code>this</code> 指向全局对象</li>
-</ul>
-</li>
-<li><p><strong>函数执行上下文</strong></p>
-<ul>
-<li>每次函数调用时创建</li>
-<li>每个函数都有自己的执行上下文</li>
-</ul>
-</li>
-<li><p><strong>Eval 执行上下文</strong></p>
-<ul>
-<li>在 <code>eval</code> 函数内部的代码有自己的执行上下文</li>
-</ul>
-</li>
-</ol>
-<h3 id="执行上下文的生命周期"><a href="#执行上下文的生命周期" class="headerlink" title="执行上下文的生命周期"></a>执行上下文的生命周期</h3><ol>
-<li><p><strong>创建阶段</strong></p>
-<ul>
-<li>创建变量对象（VO）<ul>
-<li>函数参数（函数上下文）</li>
-<li>函数声明（优先）</li>
-<li>变量声明（初始值为 <code>undefined</code>）</li>
-</ul>
-</li>
-<li>建立作用域链</li>
-<li>确定 <code>this</code> 指向</li>
-</ul>
-</li>
-<li><p><strong>执行阶段</strong></p>
-<ul>
-<li>变量赋值</li>
-<li>函数引用</li>
-<li>执行代码</li>
-</ul>
-</li>
-<li><p><strong>回收阶段</strong></p>
-<ul>
-<li>执行完毕后，等待垃圾回收</li>
-</ul>
-</li>
-</ol>
-<h3 id="变量提升示例"><a href="#变量提升示例" class="headerlink" title="变量提升示例"></a>变量提升示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// undefined</span></span><br><span class="line"><span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_">foo</span>(); <span class="comment">// &quot;Hello&quot;</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="调用栈"><a href="#调用栈" class="headerlink" title="调用栈"></a>调用栈</h2><h3 id="什么是调用栈"><a href="#什么是调用栈" class="headerlink" title="什么是调用栈"></a>什么是调用栈</h3><blockquote>
-<p>调用栈（Call Stack）是一种数据结构，用于记录代码执行的位置。</p>
-</blockquote>
-<h3 id="调用栈的特点"><a href="#调用栈的特点" class="headerlink" title="调用栈的特点"></a>调用栈的特点</h3><ol>
-<li>后进先出（LIFO）结构</li>
-<li>同步执行</li>
-<li>栈溢出：当超过最大调用栈大小时会抛出错误</li>
-</ol>
-<h3 id="调用栈示例"><a href="#调用栈示例" class="headerlink" title="调用栈示例"></a>调用栈示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">first</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;First&quot;</span>);</span><br><span class="line">  <span class="title function_">second</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">second</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Second&quot;</span>);</span><br><span class="line">  <span class="title function_">third</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">third</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Third&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">first</span>();</span><br></pre></td></tr></table></figure>
-
-<p><strong><em>调用栈变化</em></strong>：</p>
-<ol>
-<li>first() 入栈</li>
-<li>second() 入栈</li>
-<li>third() 入栈</li>
-<li>third() 出栈</li>
-<li>second() 出栈</li>
-<li>first() 出栈</li>
-</ol>
-<h3 id="栈溢出示例"><a href="#栈溢出示例" class="headerlink" title="栈溢出示例"></a>栈溢出示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">recursive</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title function_">recursive</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">recursive</span>(); <span class="comment">// Uncaught RangeError: Maximum call stack size exceeded</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="事件循环与任务队列"><a href="#事件循环与任务队列" class="headerlink" title="事件循环与任务队列"></a>事件循环与任务队列</h2><h3 id="JavaScript-运行时模型"><a href="#JavaScript-运行时模型" class="headerlink" title="JavaScript 运行时模型"></a>JavaScript 运行时模型</h3><ol>
-<li>调用栈：同步代码执行</li>
-<li>Web APIs：浏览器提供的异步功能（setTimeout, DOM 事件等）</li>
-<li>任务队列：回调函数等待执行</li>
-<li>事件循环：监控调用栈和任务队列</li>
-</ol>
-<h3 id="任务队列类型"><a href="#任务队列类型" class="headerlink" title="任务队列类型"></a>任务队列类型</h3><ol>
-<li><p>宏任务队列（Macrotask Queue）</p>
-<ul>
-<li>setTimeout</li>
-<li>setInterval</li>
-<li>setImmediate (Node.js)</li>
-<li>I&#x2F;O 操作</li>
-<li>UI 渲染</li>
-<li>事件回调</li>
-</ul>
-</li>
-<li><p>微任务队列（Microtask Queue）</p>
-<ul>
-<li>Promise.then&#x2F;catch&#x2F;finally</li>
-<li>MutationObserver</li>
-<li>process.nextTick (Node.js)</li>
-</ul>
-</li>
-</ol>
-<h3 id="事件循环流程"><a href="#事件循环流程" class="headerlink" title="事件循环流程"></a>事件循环流程</h3><ol>
-<li>执行同步代码（调用栈）</li>
-<li>遇到异步任务，交给 Web APIs 处理</li>
-<li>同步代码执行完毕，调用栈为空</li>
-<li>检查微任务队列，执行所有微任务</li>
-<li>如有必要，进行 UI 渲染</li>
-<li>从宏任务队列取出一个任务执行</li>
-<li>重复上述过程</li>
-</ol>
-<h3 id="执行顺序示例"><a href="#执行顺序示例" class="headerlink" title="执行顺序示例"></a>执行顺序示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script start&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setTimeout&quot;</span>);</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>()</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 1&quot;</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 2&quot;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script end&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出顺序:</span></span><br><span class="line"><span class="comment">// Script start</span></span><br><span class="line"><span class="comment">// Script end</span></span><br><span class="line"><span class="comment">// Promise 1</span></span><br><span class="line"><span class="comment">// Promise 2</span></span><br><span class="line"><span class="comment">// setTimeout</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>JavaScript 基础知识</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>JavaScript 基础知识</tag>
       </tags>
   </entry>
   <entry>
@@ -1430,430 +1854,6 @@
         <tag>前端</tag>
         <tag>基础知识</tag>
         <tag>浏览器-请求对象</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Web安全必修课-XSS与CSRF攻击</title>
-    <url>/2022/07/05/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-XSS%E4%B8%8ECSRF%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h2 id="一、XSS-攻击（跨站脚本攻击）"><a href="#一、XSS-攻击（跨站脚本攻击）" class="headerlink" title="一、XSS 攻击（跨站脚本攻击）"></a>一、XSS 攻击（跨站脚本攻击）</h2><h3 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>想象在论坛的留言板里，攻击者提交的内容是：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">  盗取用户cookie的代码;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>当其他用户浏览这条留言时，恶意脚本就会在他们的浏览器中执行，就像在真实的网站中运行一样</p>
-<h3 id="三种常见类型"><a href="#三种常见类型" class="headerlink" title="三种常见类型"></a>三种常见类型</h3><h4 id="1-反射型-XSS（临时攻击）"><a href="#1-反射型-XSS（临时攻击）" class="headerlink" title="1. 反射型 XSS（临时攻击）"></a>1. 反射型 XSS（临时攻击）</h4><ul>
-<li>通过 URL 参数注入恶意脚本</li>
-</ul>
-<ul>
-<li>示例链接：</li>
-</ul>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">https://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-存储型-XSS（持久化攻击）"><a href="#2-存储型-XSS（持久化攻击）" class="headerlink" title="2. 存储型 XSS（持久化攻击）"></a>2. 存储型 XSS（持久化攻击）</h4><ul>
-<li><p>恶意脚本被保存到数据库</p>
-</li>
-<li><p>常见场景：用户评论、私信内容</p>
-</li>
-</ul>
-<h4 id="3-DOM-型-XSS（纯前端攻击）"><a href="#3-DOM-型-XSS（纯前端攻击）" class="headerlink" title="3. DOM 型 XSS（纯前端攻击）"></a>3. DOM 型 XSS（纯前端攻击）</h4><ul>
-<li><p>不经过服务器，前端直接操作 DOM 时触发</p>
-</li>
-<li><p>示例代码</p>
-</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从URL获取参数直接插入页面</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">write</span>(location.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
-
-<h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
-<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
-</blockquote>
-<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
-
-<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>HttpOnly - 重要安全属性，作用是：</p>
-<ul>
-<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
-<li>有效防范 XSS 攻击窃取 Cookie</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>Secure - 安全传输属性，作用是：</p>
-<ul>
-<li>该 Cookie 只能通过 HTTPS 协议传输</li>
-<li>防止在 HTTP 明文传输中被窃听</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>
-<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><ol>
-<li>用户登录信任网站 A</li>
-<li>网站 A 下发身份 Cookie</li>
-<li>用户访问恶意网站 B</li>
-<li>网站 B 诱导浏览器向网站 A 发起请求</li>
-<li>浏览器自动携带 Cookie 完成请求</li>
-</ol>
-<h3 id="防御方案-1"><a href="#防御方案-1" class="headerlink" title="防御方案"></a>防御方案</h3><ol>
-<li>CSRF Token 验证</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端生成Token</span></span><br><span class="line"><span class="keyword">const</span> csrfToken = crypto.<span class="title function_">randomBytes</span>(<span class="number">16</span>).<span class="title function_">toString</span>(<span class="string">&#x27;hex&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 前端表单携带Token</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;/transfer&quot;</span> <span class="attr">method</span>=<span class="string">&quot;POST&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;_csrf&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&lt;%= csrfToken %&gt;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="comment">&lt;!-- 其他表单字段 --&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">// 服务端中间件验证</span></span><br><span class="line"><span class="language-xml">app.post(&#x27;/transfer&#x27;, (req, res) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">  if(req.body._csrf !== req.session.csrfToken) &#123;</span></span><br><span class="line"><span class="language-xml">    return res.status(403).send(&#x27;CSRF验证失败&#x27;);</span></span><br><span class="line"><span class="language-xml">  &#125;</span></span><br><span class="line"><span class="language-xml">  // 处理业务逻辑</span></span><br><span class="line"><span class="language-xml">&#125;);</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>SameSite Cookie 属性</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">SameSite</span>=<span class="title class_">Lax</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>Strict：完全禁止第三方 Cookie</li>
-<li>Lax：允许部分安全请求（默认值）</li>
-<li>None：关闭保护（需配合 Secure）</li>
-</ul>
-<ol start="3">
-<li>验证请求来源</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 检查Referer头</span></span><br><span class="line"><span class="keyword">if</span> (</span><br><span class="line">  req.<span class="property">headers</span>.<span class="property">referer</span> &amp;&amp;</span><br><span class="line">  !req.<span class="property">headers</span>.<span class="property">referer</span>.<span class="title function_">startsWith</span>(<span class="string">&quot;https://trusted-domain.com&quot;</span>)</span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;非法请求来源&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>双重 Cookie 验证</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端在请求头中携带Cookie信息</span></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/transfer&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&quot;X-CSRF-TOKEN&quot;</span>: <span class="title function_">getCookie</span>(<span class="string">&quot;csrfToken&quot;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 服务端比对Cookie与Header中的值</span></span><br><span class="line"><span class="keyword">if</span> (req.<span class="property">headers</span>[<span class="string">&quot;x-csrf-token&quot;</span>] !== req.<span class="property">cookies</span>.<span class="property">csrfToken</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> res.<span class="title function_">status</span>(<span class="number">403</span>).<span class="title function_">send</span>(<span class="string">&quot;验证失败&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="三、实战防御组合拳"><a href="#三、实战防御组合拳" class="headerlink" title="三、实战防御组合拳"></a>三、实战防御组合拳</h2><h3 id="推荐防御策略"><a href="#推荐防御策略" class="headerlink" title="推荐防御策略"></a>推荐防御策略</h3><h4 id="1-XSS-综合防御"><a href="#1-XSS-综合防御" class="headerlink" title="1. XSS 综合防御"></a>1. XSS 综合防御</h4><ul>
-<li>输入校验 + 输出转义 + CSP 策略 + HttpOnly</li>
-</ul>
-<h4 id="2-CSRF-黄金组合"><a href="#2-CSRF-黄金组合" class="headerlink" title="2. CSRF 黄金组合"></a>2. CSRF 黄金组合</h4><ul>
-<li>CSRF Token + SameSite Cookie</li>
-</ul>
-<h3 id="现代框架最佳实践"><a href="#现代框架最佳实践" class="headerlink" title="现代框架最佳实践"></a>现代框架最佳实践</h3><ol>
-<li>React 项目配置 CSP</li>
-</ol>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span></span></span><br><span class="line"><span class="tag">  <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27;; </span></span></span><br><span class="line"><span class="string"><span class="tag">               script-src &#x27;self&#x27; &#x27;unsafe-eval&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               img-src https://*;&quot;</span></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>Express 中间件配置</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> csrf = <span class="built_in">require</span>(<span class="string">&quot;csurf&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> cookieParser = <span class="built_in">require</span>(<span class="string">&quot;cookie-parser&quot;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">cookieParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">csrf</span>(&#123; <span class="attr">cookie</span>: <span class="literal">true</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取CSRF Token</span></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&quot;/csrf-token&quot;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">  res.<span class="title function_">json</span>(&#123; <span class="attr">csrfToken</span>: req.<span class="title function_">csrfToken</span>() &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="渗透测试工具推荐"><a href="#渗透测试工具推荐" class="headerlink" title="渗透测试工具推荐"></a>渗透测试工具推荐</h3><ol>
-<li>使用 OWASP ZAP 自动扫描漏洞</li>
-<li>通过 Postman 手动测试 API 接口</li>
-<li>利用 Burp Suite 进行高级安全测试</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户访问恶意网站] --&gt; B[触发隐藏请求]</span><br><span class="line">    B --&gt; C[携带合法Cookie]</span><br><span class="line">    C --&gt; D[服务端执行危险操作]</span><br><span class="line">    D --&gt; E[攻击完成]</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>防御措施实施后，建议定期使用自动化工具进行安全扫描，并建立漏洞响应机制。安全防护需要持&gt; 续维护，而非一劳永逸！</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>Web安全</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>Web安全</tag>
-        <tag>XSS与CSRF攻击</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>css预编译器</title>
-    <url>/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/</url>
-    <content><![CDATA[<h3 id="1-Sass-Syntactically-Awesome-Style-Sheets"><a href="#1-Sass-Syntactically-Awesome-Style-Sheets" class="headerlink" title="1. Sass (Syntactically Awesome Style Sheets)"></a>1. Sass (Syntactically Awesome Style Sheets)</h3><p><strong>特点：</strong></p>
-<ul>
-<li>最成熟的 CSS 预处理器</li>
-<li>提供两种语法格式：<ul>
-<li><code>.scss</code> (Sassy CSS) - 兼容 CSS 语法</li>
-<li><code>.sass</code> - 缩进语法（不使用大括号和分号）</li>
-</ul>
-</li>
-<li>需要 Ruby 环境（LibSass 版本不需要）</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">$primary-color</span>: <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="keyword">@mixin</span> border-radius(<span class="variable">$radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">$radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承</span></span><br><span class="line"><span class="selector-class">.message</span> &#123;</span><br><span class="line">  <span class="attribute">border</span>: <span class="number">1px</span> solid <span class="number">#ccc</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-class">.success</span> &#123;</span><br><span class="line">  <span class="keyword">@extend</span> .message;</span><br><span class="line">  <span class="attribute">color</span>: green;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-Less-Leaner-Style-Sheets"><a href="#2-Less-Leaner-Style-Sheets" class="headerlink" title="2.Less (Leaner Style Sheets)"></a>2.Less (Leaner Style Sheets)</h3><p><strong>特点：</strong></p>
-<ul>
-<li>受 Sass 启发，语法更接近原生 CSS</li>
-<li>使用 JavaScript 实现（Node.js）</li>
-<li>浏览器端可直接运行（开发环境）</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">@primary-color:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="selector-class">.border-radius</span>(<span class="variable">@radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运算</span></span><br><span class="line"><span class="variable">@base:</span> <span class="number">5%</span>;</span><br><span class="line"><span class="variable">@filler:</span> <span class="variable">@base</span> * <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-Stylus"><a href="#3-Stylus" class="headerlink" title="3.Stylus"></a>3.Stylus</h3><p><strong>特点：</strong></p>
-<ul>
-<li>语法最灵活（可选括号、分号、冒号）</li>
-<li>Node.js 实现</li>
-<li>强调简洁性和表现力</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 变量（可省略$）</span></span><br><span class="line">primary-<span class="attribute">color</span> = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span></span><br><span class="line">  <span class="selector-tag">ul</span></span><br><span class="line">    <span class="attribute">margin</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="attribute">border-radius</span>(radius)</span><br><span class="line">  <span class="attribute">border-radius</span> radius</span><br><span class="line"></span><br><span class="line"><span class="comment">// 内置函数</span></span><br><span class="line"><span class="built_in">lighten</span>(color, <span class="number">10%</span>)</span><br></pre></td></tr></table></figure>
-
-<h3 id="三者异同"><a href="#三者异同" class="headerlink" title="三者异同"></a>三者异同</h3><h4 id="模块化能力对比"><a href="#模块化能力对比" class="headerlink" title="模块化能力对比"></a>模块化能力对比</h4><table>
-<thead>
-<tr>
-<th>模块化特性</th>
-<th>Sass&#x2F;SCSS</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>基础导入</strong></td>
-<td><code>@import</code> (旧版)</td>
-<td><code>@import</code></td>
-<td><code>@import</code></td>
-</tr>
-<tr>
-<td><strong>现代模块系统</strong></td>
-<td><code>@use</code> + <code>@forward</code> (Dart Sass)</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>命名空间</strong></td>
-<td>通过<code>@use</code>引入带前缀</td>
-<td>无原生支持</td>
-<td>无原生支持</td>
-</tr>
-<tr>
-<td><strong>私有成员</strong></td>
-<td><code>-</code>或<code>_</code>前缀变量</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>依赖管理</strong></td>
-<td>自动避免重复导入</td>
-<td>需手动管理</td>
-<td>需手动管理</td>
-</tr>
-<tr>
-<td><strong>局部文件</strong></td>
-<td><code>_partial.scss</code>约定</td>
-<td><code>_partial.less</code>约定</td>
-<td><code>_partial.styl</code>约定</td>
-</tr>
-<tr>
-<td><strong>CSS 输出控制</strong></td>
-<td><code>@forward</code>隐藏&#x2F;暴露特定成员</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>变量覆盖</strong></td>
-<td><code>!default</code>标记可覆盖变量</td>
-<td>后定义覆盖前定义</td>
-<td>后定义覆盖前定义</td>
-</tr>
-<tr>
-<td><strong>跨文件共享</strong></td>
-<td>通过<code>@use</code>共享</td>
-<td>全局自动共享</td>
-<td>全局自动共享</td>
-</tr>
-<tr>
-<td><strong>按需加载</strong></td>
-<td>支持条件导入</td>
-<td>全部导入</td>
-<td>支持条件导入</td>
-</tr>
-</tbody></table>
-<h4 id="典型代码示例"><a href="#典型代码示例" class="headerlink" title="典型代码示例"></a>典型代码示例</h4><p><strong>Sass 模块化 (现代方式)</strong></p>
-<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// _variables.scss</span></span><br><span class="line"><span class="variable">$primary</span>: <span class="number">#333</span> !default;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.scss</span></span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;variables&quot;</span> as vars;</span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;buttons&quot;</span> with (</span><br><span class="line">  <span class="variable">$primary</span>: vars.<span class="variable">$primary</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<p><strong>Less 模块化</strong></p>
-<figure class="highlight less"><table><tr><td class="code"><pre><span class="line"><span class="comment">// variables.less</span></span><br><span class="line"><span class="variable">@primary:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.less</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;variables&quot;</span>;</span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;buttons&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<p><strong>Stylus 模块化</strong></p>
-<figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// variables.styl</span></span><br><span class="line">primary = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// main.styl</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;variables&#x27;</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;buttons&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>注意:</p>
-<ol>
-<li><p>Less 中的变量，在声明中使用时，如果出现多次赋值的情况，其会取最后一次赋值的值</p>
-</li>
-<li><p>Sass&#x2F;Stylus 中的变量，如果出现多次赋值的情况，其会取声明前面最近的一次赋值的值</p>
-</li>
-</ol>
-<h4 id="模块化建议："><a href="#模块化建议：" class="headerlink" title="模块化建议："></a>模块化建议：</h4><ul>
-<li>需要严格隔离 → 选择 Sass 的 @use 系统</li>
-<li>简单项目 → Less&#x2F;Stylus 的基础导入已足够</li>
-<li>变量共享 → Sass 的命名空间最安全</li>
-<li>旧项目维护 → 注意 Sass 的 @import 已被标记为废弃</li>
-</ul>
-<h4 id="三种-CSS-预编译器对比"><a href="#三种-CSS-预编译器对比" class="headerlink" title="三种 CSS 预编译器对比"></a>三种 CSS 预编译器对比</h4><table>
-<thead>
-<tr>
-<th>对比维度</th>
-<th>Sass&#x2F;SCSS</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>诞生时间</strong></td>
-<td>2006 年 (最早期)</td>
-<td>2009 年 (受 Sass 启发)</td>
-<td>2010 年 (最新)</td>
-</tr>
-<tr>
-<td><strong>语法风格</strong></td>
-<td><code>.scss</code>兼容 CSS &#x2F; <code>.sass</code>缩进语法</td>
-<td>完全兼容 CSS 语法</td>
-<td>极简语法（符号可选）</td>
-</tr>
-<tr>
-<td><strong>运行环境</strong></td>
-<td>Ruby (或 LibSass 的 C 版本)</td>
-<td>JavaScript (Node.js)</td>
-<td>JavaScript (Node.js)</td>
-</tr>
-<tr>
-<td><strong>变量声明</strong></td>
-<td><code>$var: value;</code></td>
-<td><code>@var: value;</code></td>
-<td><code>var = value</code> 或 <code>var: value</code></td>
-</tr>
-<tr>
-<td><strong>嵌套规则</strong></td>
-<td>支持完整嵌套</td>
-<td>支持完整嵌套</td>
-<td>支持（缩进敏感）</td>
-</tr>
-<tr>
-<td><strong>Mixin</strong></td>
-<td><code>@mixin</code>定义 &#x2F; <code>@include</code>调用</td>
-<td>类式混合（直接调用）</td>
-<td>函数式定义</td>
-</tr>
-<tr>
-<td><strong>继承</strong></td>
-<td><code>@extend</code></td>
-<td>无（通过 Mixins 模拟）</td>
-<td><code>@extend</code></td>
-</tr>
-<tr>
-<td><strong>运算能力</strong></td>
-<td>支持复杂数学运算</td>
-<td>基础运算</td>
-<td>支持运算和内置函数</td>
-</tr>
-<tr>
-<td><strong>条件语句</strong></td>
-<td><code>@if/@else</code></td>
-<td>有限支持（通过 when）</td>
-<td>完整 if&#x2F;else 支持</td>
-</tr>
-<tr>
-<td><strong>循环语句</strong></td>
-<td><code>@for/@each/@while</code></td>
-<td>有限循环</td>
-<td>完整循环支持</td>
-</tr>
-<tr>
-<td><strong>模块化</strong></td>
-<td><code>@use</code>&#x2F;<code>@forward</code> (新版)</td>
-<td><code>@import</code></td>
-<td><code>@import</code></td>
-</tr>
-<tr>
-<td><strong>错误处理</strong></td>
-<td>详细错误报告</td>
-<td>基础错误提示</td>
-<td>相对简洁的错误提示</td>
-</tr>
-<tr>
-<td><strong>编译速度</strong></td>
-<td>较快（LibSass 版本）</td>
-<td>中等</td>
-<td>最快</td>
-</tr>
-<tr>
-<td><strong>社区生态</strong></td>
-<td>最庞大（Bootstrap 早期使用）</td>
-<td>较大（Bootstrap v3 采用）</td>
-<td>较小但活跃</td>
-</tr>
-<tr>
-<td><strong>典型用户</strong></td>
-<td>GitHub, Airbnb, Shopify</td>
-<td>Bootstrap 3, 早期 React 项目</td>
-<td>Vue 生态（早期 Vue-loader 集成）</td>
-</tr>
-</tbody></table>
-<h3 id="特色功能对比"><a href="#特色功能对比" class="headerlink" title="特色功能对比"></a>特色功能对比</h3><table>
-<thead>
-<tr>
-<th>高级功能</th>
-<th>Sass</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>颜色函数</strong></td>
-<td>提供 20+颜色操作函数</td>
-<td>基础颜色混合</td>
-<td>内置 lighten&#x2F;darken 等</td>
-</tr>
-<tr>
-<td><strong>父选择器</strong></td>
-<td><code>&amp;</code> 高度灵活</td>
-<td><code>&amp;</code> 基本功能</td>
-<td><code>&amp;</code> 支持层级引用</td>
-</tr>
-<tr>
-<td><strong>自定义函数</strong></td>
-<td><code>@function</code></td>
-<td>通过插件扩展</td>
-<td>内置函数式支持</td>
-</tr>
-<tr>
-<td><strong>CSS 兼容</strong></td>
-<td>完全兼容 CSS</td>
-<td>完全兼容 CSS</td>
-<td>需要转换语法</td>
-</tr>
-<tr>
-<td><strong>动态导入</strong></td>
-<td>支持运行时导入</td>
-<td>静态导入</td>
-<td>支持条件导入</td>
-</tr>
-<tr>
-<td><strong>源码映射</strong></td>
-<td>完整 sourcemap 支持</td>
-<td>基础支持</td>
-<td>完整支持</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>选择建议：</p>
-<ul>
-<li><strong>企业级项目</strong> → Sass（稳定性和功能完整性）</li>
-<li><strong>前端框架集成</strong> → Less（纯 JS 实现优势）</li>
-<li><strong>开发效率优先</strong> → Stylus（极简语法和快速原型）</li>
-<li><strong>已有技术栈</strong> → 优先匹配现有生态</li>
-</ul>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>css</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>css</tag>
       </tags>
   </entry>
 </search>
