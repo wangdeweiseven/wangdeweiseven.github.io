@@ -1568,7 +1568,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-09 22:07:22" itemprop="dateModified" datetime="2025-04-09T22:07:22+08:00">2025-04-09</time>
+      <time title="修改时间：2025-04-09 22:14:43" itemprop="dateModified" datetime="2025-04-09T22:14:43+08:00">2025-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1686,9 +1686,9 @@
 <li>由于 promise4 已经是 fulfilled 状态，立即执行第二个 then 的回调</li>
 <li>输出拼接后的字符串 “success again”</li>
 </ol>
-<h2 id="完整执行时序图"><a href="#完整执行时序图" class="headerlink" title="完整执行时序图"></a>完整执行时序图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">主线程:</span><br><span class="line">1. 创建 Promise → 设置 setTimeout → 注册 then1 → 注册 then2</span><br><span class="line">   (所有 then 回调都存入队列)</span><br><span class="line"></span><br><span class="line">宏任务队列:</span><br><span class="line">[ 1秒后:</span><br><span class="line">  1. 执行 setTimeout 回调 → resolve → 触发 then1 回调</span><br><span class="line">  2. then1 返回新 Promise → 触发 then2 回调</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<h3 id="完整执行时序图"><a href="#完整执行时序图" class="headerlink" title="完整执行时序图"></a>完整执行时序图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">主线程:</span><br><span class="line">1. 创建 Promise → 设置 setTimeout → 注册 then1 → 注册 then2</span><br><span class="line">   (所有 then 回调都存入队列)</span><br><span class="line"></span><br><span class="line">宏任务队列:</span><br><span class="line">[ 1秒后:</span><br><span class="line">  1. 执行 setTimeout 回调 → resolve → 触发 then1 回调</span><br><span class="line">  2. then1 返回新 Promise → 触发 then2 回调</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h2 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h2><ol>
+<h3 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h3><ol>
 <li>异步机制 ：通过 setTimeout 实现真正的异步，符合 Promise&#x2F;A+ 规范</li>
 <li>链式调用 ：每个 then 都返回新 Promise，形成调用链</li>
 <li>值传递 ：前一个 then 的返回值会作为参数传给下一个 then</li>
