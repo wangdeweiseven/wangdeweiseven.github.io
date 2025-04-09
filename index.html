@@ -148,18 +148,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1532,6 +1532,258 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/02/ES6-Promise/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/05/02/ES6-Promise/" class="post-title-link" itemprop="url">手写 Promise 实现指南：从规范到代码实践</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-05-02 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-02T00:00:00+08:00">2022-05-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-09 21:57:37" itemprop="dateModified" datetime="2025-04-09T21:57:37+08:00">2025-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/ES6/" itemprop="url" rel="index"><span itemprop="name">ES6</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一-Promise-A-规范与需求背景"><a href="#一-Promise-A-规范与需求背景" class="headerlink" title="一. Promise&#x2F;A+ 规范与需求背景"></a>一. Promise&#x2F;A+ 规范与需求背景</h2><h3 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h3><p>在 JavaScript 的异步编程中，传统的回调函数存在 “回调地狱”（层层嵌套难以维护）和 “错误处理困难” 的问题。例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fs.<span class="title function_">readFile</span>(<span class="string">&quot;1.txt&quot;</span>, <span class="function">(<span class="params">err, data1</span>) =&gt;</span> &#123;</span><br><span class="line">  fs.<span class="title function_">readFile</span>(data1, <span class="function">(<span class="params">err, data2</span>) =&gt;</span> &#123;</span><br><span class="line">    fs.<span class="title function_">readFile</span>(data2, <span class="function">(<span class="params">err, data3</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/* ... */</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>Promise 应运而生，通过链式调用 .then() 将嵌套转为线性结构，同时提供统一的错误捕获机制</p>
+<h3 id="Promise-A-规范核心"><a href="#Promise-A-规范核心" class="headerlink" title="Promise&#x2F;A+ 规范核心"></a>Promise&#x2F;A+ 规范核心</h3><h3 id="1-三种状态"><a href="#1-三种状态" class="headerlink" title="1. 三种状态"></a>1. 三种状态</h3><ul>
+<li><strong>Pending</strong>：初始状态，可转为 Fulfilled 或 Rejected。</li>
+<li><strong>Fulfilled</strong>：成功态，必须有不可变的值（value）。</li>
+<li><strong>Rejected</strong>：失败态，必须有不可变的原因（reason）。</li>
+</ul>
+<h3 id="2-then-方法行为"><a href="#2-then-方法行为" class="headerlink" title="2. then 方法行为"></a>2. then 方法行为</h3><ul>
+<li>接受 <code>onFulfilled</code> 和 <code>onRejected</code> 两个回调（可选）。</li>
+<li>回调必须异步执行（如 <code>setTimeout</code> 或微任务）。</li>
+<li>可被多次调用，按注册顺序执行。</li>
+<li>必须返回新 Promise，支持链式调用。</li>
+</ul>
+<h3 id="3-解决过程（Resolution-Procedure）"><a href="#3-解决过程（Resolution-Procedure）" class="headerlink" title="3. 解决过程（Resolution Procedure）"></a>3. 解决过程（Resolution Procedure）</h3><ul>
+<li>若回调返回值是 Promise，则等待其状态；若是普通值，则直接传递。</li>
+<li>处理循环引用（如返回自身会报错）。</li>
+</ul>
+<h2 id="二-手写-Promise-实现步骤"><a href="#二-手写-Promise-实现步骤" class="headerlink" title="二. 手写 Promise 实现步骤"></a>二. 手写 Promise 实现步骤</h2><h3 id="Step-1：基本框架与状态管理"><a href="#Step-1：基本框架与状态管理" class="headerlink" title="Step 1：基本框架与状态管理"></a>Step 1：基本框架与状态管理</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>()); <span class="comment">// 触发回调</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject); <span class="comment">// 立即执行</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="title function_">reject</span>(e); <span class="comment">// 捕获同步错误</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-2：实现-then-方法"><a href="#Step-2：实现-then-方法" class="headerlink" title="Step 2：实现 then 方法"></a>Step 2：实现 then 方法</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">  <span class="comment">// 处理值穿透（参数非函数时提供默认值）</span></span><br><span class="line">  onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&#x27;function&#x27;</span> ? onFulfilled : <span class="function"><span class="params">v</span> =&gt;</span> v;</span><br><span class="line">  onRejected = <span class="keyword">typeof</span> onRejected === <span class="string">&#x27;function&#x27;</span> ? onRejected : <span class="function"><span class="params">err</span> =&gt;</span> &#123; <span class="keyword">throw</span> err; &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123; <span class="comment">// 确保异步执行</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">          <span class="title function_">reject</span>(e);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;, <span class="number">0</span>);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 类似处理 handleRejected...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;fulfilled&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleFulfilled</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&#x27;rejected&#x27;</span>) &#123;</span><br><span class="line">      <span class="title function_">handleRejected</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// pending 状态，存入队列</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> promise2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-3：解决过程与链式调用"><a href="#Step-3：解决过程与链式调用" class="headerlink" title="Step 3：解决过程与链式调用"></a>Step 3：解决过程与链式调用</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&#x27;循环引用&#x27;</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject); <span class="comment">// 等待 x 的状态</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x); <span class="comment">// 普通值直接传递</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-4：错误冒泡与-catch-方法"><a href="#Step-4：错误冒泡与-catch-方法" class="headerlink" title="Step 4：错误冒泡与 catch 方法"></a>Step 4：错误冒泡与 catch 方法</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整的手写代码"><a href="#完整的手写代码" class="headerlink" title="完整的手写代码"></a>完整的手写代码</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义Promise类，实现了基本的Promise功能，包括链式调用、异步处理和错误捕获。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyPromise</span> &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 构造函数，接收一个执行器函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">executor</span> - 执行器函数，接收两个参数：resolve和reject。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">executor</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;pending&quot;</span>; <span class="comment">// 初始状态，Promise的初始状态为pending</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">value</span> = <span class="literal">undefined</span>; <span class="comment">// 成功值，当Promise状态变为fulfilled时，存储成功的值</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">reason</span> = <span class="literal">undefined</span>; <span class="comment">// 失败原因，当Promise状态变为rejected时，存储失败的原因</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span> = []; <span class="comment">// 成功回调队列，存储在Promise状态变为fulfilled时需要执行的回调函数</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span> = []; <span class="comment">// 失败回调队列，存储在Promise状态变为rejected时需要执行的回调函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 解决函数，用于将Promise状态从pending变为fulfilled。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">value</span> - 成功的值。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">resolve</span> = (<span class="params">value</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为fulfilled</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;fulfilled&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">value</span> = value;</span><br><span class="line">        <span class="comment">// 执行所有成功回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 拒绝函数，用于将Promise状态从pending变为rejected。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">reason</span> - 失败的原因。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">reject</span> = (<span class="params">reason</span>) =&gt; &#123;</span><br><span class="line">      <span class="comment">// 只有当Promise状态为pending时，才能将状态变为rejected</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;pending&quot;</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">status</span> = <span class="string">&quot;rejected&quot;</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">reason</span> = reason;</span><br><span class="line">        <span class="comment">// 执行所有失败回调</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">fn</span>) =&gt;</span> <span class="title function_">fn</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 立即执行执行器</span></span><br><span class="line">      <span class="title function_">executor</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      <span class="comment">// 捕获同步错误</span></span><br><span class="line">      <span class="title function_">reject</span>(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加成功和失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onFulfilled</span> - 成功回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">then</span>(<span class="params">onFulfilled, onRejected</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理值穿透，默认函数</span></span><br><span class="line">    onFulfilled = <span class="keyword">typeof</span> onFulfilled === <span class="string">&quot;function&quot;</span> ? onFulfilled : <span class="function">(<span class="params">v</span>) =&gt;</span> v;</span><br><span class="line">    onRejected =</span><br><span class="line">      <span class="keyword">typeof</span> onRejected === <span class="string">&quot;function&quot;</span></span><br><span class="line">        ? onRejected</span><br><span class="line">        : <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> err;</span><br><span class="line">          &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> promise2 = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理成功回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleFulfilled</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 确保异步执行</span></span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onFulfilled</span>(<span class="variable language_">this</span>.<span class="property">value</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 处理失败回调的函数。</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">const</span> <span class="title function_">handleRejected</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> x = <span class="title function_">onRejected</span>(<span class="variable language_">this</span>.<span class="property">reason</span>);</span><br><span class="line">            <span class="comment">// 解析Promise结果</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">resolvePromise</span>(promise2, x, resolve, reject);</span><br><span class="line">          &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(e);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">0</span>);</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;fulfilled&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleFulfilled</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">status</span> === <span class="string">&quot;rejected&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_">handleRejected</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// pending状态，存入回调队列</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onFulfilledCallbacks</span>.<span class="title function_">push</span>(handleFulfilled);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onRejectedCallbacks</span>.<span class="title function_">push</span>(handleRejected);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> promise2; <span class="comment">// 返回新Promise实现链式调用</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 解析Promise结果，处理循环引用和嵌套Promise。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">MyPromise</span>&#125; <span class="variable">promise2</span> - 新的Promise实例。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">any</span>&#125; <span class="variable">x</span> - 回调函数的返回值。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">resolve</span> - 解决函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">reject</span> - 拒绝函数。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">    <span class="comment">// 防止 const p = new Promise.then(() =&gt; p) 会导致死循环</span></span><br><span class="line">    <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">      <span class="comment">// 循环引用检测</span></span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 处理Promise对象 （当then 返回的是promise，</span></span><br><span class="line">    <span class="comment">// 如：此处也是一个异步操作时，为了保证后一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">    <span class="comment">// 如不处理后一个then接受的会是一个Promise对象，进而无法实现链式调用）</span></span><br><span class="line">    <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">      x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 普通值直接resolve</span></span><br><span class="line">      <span class="title function_">resolve</span>(x);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为Promise实例添加失败回调。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> &#123;<span class="type">function</span>&#125; <span class="variable">onRejected</span> - 失败回调函数。</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@returns</span> &#123;<span class="type">MyPromise</span>&#125; - 返回一个新的Promise实例，用于链式调用。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">catch</span>(onRejected) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">then</span>(<span class="literal">null</span>, onRejected);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三-测试用例与验证"><a href="#三-测试用例与验证" class="headerlink" title="三. 测试用例与验证"></a>三. 测试用例与验证</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 测试链式调用与异步</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试错误捕获</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(err)); <span class="comment">// 捕获同步错误</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="四-扩展与总结"><a href="#四-扩展与总结" class="headerlink" title="四. 扩展与总结"></a>四. 扩展与总结</h2><h3 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h3><ul>
+<li><p>静态方法：实现 Promise.all（所有成功）、Promise.race（竞速）11。</p>
+</li>
+<li><p>微任务优化：用 MutationObserver 替代 setTimeout 实现更高效的异步调度。</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Promise 通过状态机、回调队列和链式调用，将异步逻辑线性化。手写实现需严格遵循 Promise&#x2F;A+ 规范，核心在于 then 的异步处理和解决过程的递归解析。理解这一机制有助于掌握 JavaScript 异步编程的精髓</p>
+<h2 id="补充-（详解-测试用例-代码执行过程）"><a href="#补充-（详解-测试用例-代码执行过程）" class="headerlink" title="补充 （详解 测试用例 代码执行过程）"></a>补充 （详解 测试用例 代码执行过程）</h2><h3 id="测试用例："><a href="#测试用例：" class="headerlink" title="测试用例："></a>测试用例：</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1秒后输出: success</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res)); <span class="comment">// 输出: success again</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-Promise-初始化"><a href="#1-Promise-初始化" class="headerlink" title="1. Promise 初始化"></a>1. Promise 初始化</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>), <span class="number">1000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>创建 MyPromise 实例，立即执行 executor 函数</li>
+<li>遇到 setTimeout ，将回调函数放入宏任务队列，1 秒后执行</li>
+<li>此时 Promise 状态为 pending ，主线程继续执行后续代码</li>
+</ol>
+<h2 id="2-第一个-then-方法调用"><a href="#2-第一个-then-方法调用" class="headerlink" title="2. 第一个 then 方法调用"></a>2. 第一个 then 方法调用</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res);</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(res + <span class="string">&quot; again&quot;</span>));</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>调用 then 方法时 Promise 仍处于 pending 状态</li>
+<li>将回调函数 (res) &#x3D;&gt; { console… } 存入 onFulfilledCallbacks 队列</li>
+<li>then 方法返回一个新的 Promise (promise2)</li>
+</ol>
+<h2 id="3-第二个-then-方法调用"><a href="#3-第二个-then-方法调用" class="headerlink" title="3. 第二个 then 方法调用"></a>3. 第二个 then 方法调用</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(res));</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>继续在 promise2 上调用 then</li>
+<li>由于 promise2 也处于 pending 状态，将回调存入它的 onFulfilledCallbacks</li>
+<li>返回第三个 Promise (promise3)</li>
+</ol>
+<h2 id="4-1-秒后-setTimeout-回调执行"><a href="#4-1-秒后-setTimeout-回调执行" class="headerlink" title="4. 1 秒后 setTimeout 回调执行"></a>4. 1 秒后 setTimeout 回调执行</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">() =&gt; <span class="title function_">resolve</span>(<span class="string">&quot;success&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>调用 resolve(“success”) ，将第一个 Promise 状态改为 fulfilled</li>
+<li>设置 this.value &#x3D; “success”</li>
+<li>执行 onFulfilledCallbacks 中的回调（第一个 then 的回调）</li>
+</ol>
+<h2 id="5-执行第一个-then-的回调"><a href="#5-执行第一个-then-的回调" class="headerlink" title="5. 执行第一个 then 的回调"></a>5. 执行第一个 then 的回调</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(res) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success&quot;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>创建新的 Promise (promise4)，立即执行其 executor</li>
+<li>同步调用 resolve(“success again”) ，promise4 状态变为 fulfilled</li>
+<li>这个返回值会通过 resolvePromise 传递给 promise2</li>
+</ol>
+<h2 id="6-执行第二个-then-的回调"><a href="#6-执行第二个-then-的回调" class="headerlink" title="6. 执行第二个 then 的回调"></a>6. 执行第二个 then 的回调</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(res) =&gt; <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 输出 &quot;success again&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>执行过程：</strong></p>
+<ol>
+<li>promise2 的 resolvePromise 处理返回的 promise4</li>
+<li>由于 promise4 已经是 fulfilled 状态，立即执行第二个 then 的回调</li>
+<li>输出拼接后的字符串 “success again”</li>
+</ol>
+<h2 id="完整执行时序图"><a href="#完整执行时序图" class="headerlink" title="完整执行时序图"></a>完整执行时序图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">主线程:</span><br><span class="line">1. 创建 Promise → 设置 setTimeout → 注册 then1 → 注册 then2</span><br><span class="line">   (所有 then 回调都存入队列)</span><br><span class="line"></span><br><span class="line">宏任务队列:</span><br><span class="line">[ 1秒后:</span><br><span class="line">  1. 执行 setTimeout 回调 → resolve → 触发 then1 回调</span><br><span class="line">  2. then1 返回新 Promise → 触发 then2 回调</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h2 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h2><ol>
+<li>异步机制 ：通过 setTimeout 实现真正的异步，符合 Promise&#x2F;A+ 规范</li>
+<li>链式调用 ：每个 then 都返回新 Promise，形成调用链</li>
+<li>值传递 ：前一个 then 的返回值会作为参数传给下一个 then</li>
+<li>状态管理 ：<ul>
+<li>初始 Promise 从 pending → fulfilled</li>
+<li>then 返回的新 Promise 根据回调执行结果改变状态</li>
+</ul>
+</li>
+</ol>
+<h2 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h2><h3 id="1-resolvePromise-的作用"><a href="#1-resolvePromise-的作用" class="headerlink" title="1. resolvePromise 的作用"></a>1. resolvePromise 的作用</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">resolvePromise</span>(<span class="params">promise2, x, resolve, reject</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 循环引用检测</span></span><br><span class="line">  <span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 处理返回的Promise对象</span></span><br><span class="line">  <span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">    x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 3. 处理普通值</span></span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(x);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="详细解析："><a href="#详细解析：" class="headerlink" title="详细解析："></a>详细解析：</h4><ol>
+<li><p>循环引用检测</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (promise2 === x) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&quot;Chaining cycle detected&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>防止类似 promise.then(() &#x3D;&gt; promise) 的循环引用</li>
+<li>如果检测到循环引用，直接 reject 一个 TypeError</li>
+</ul>
+</li>
+<li><p>处理 Promise 对象</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (x <span class="keyword">instanceof</span> <span class="title class_">MyPromise</span>) &#123;</span><br><span class="line">  <span class="comment">// 这里的x是上一个then的返回值,此处为一个Promise，为了确保下一个then能接受到此处异步操作的返回值，</span></span><br><span class="line">  <span class="comment">// 需要将外层的Promise对象的resoleve和reject传入，进而捕获此处异步操作的返回值,便于传递给下一个then</span></span><br><span class="line">  x.<span class="title function_">then</span>(resolve, reject);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当回调函数返回的是另一个 Promise 时（如 return new MyPromise(…) ）</li>
+<li>会等待这个 Promise 完成，然后将其结果传递给外层 Promise</li>
+<li>例如： return new MyPromise(resolve &#x3D;&gt; resolve(42)) 会等待内部 Promise 完成</li>
+</ul>
+</li>
+<li><p>处理普通值</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(x);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当回调函数返回非 Promise 值时（如数字、字符串、对象等）</li>
+<li>直接将该值作为外层 Promise 的解决值</li>
+<li>例如： return 42 会直接 resolve(42)</li>
+</ul>
+</li>
+</ol>
+<h4 id="关键作用："><a href="#关键作用：" class="headerlink" title="关键作用："></a>关键作用：</h4><ol>
+<li>实现链式调用的核心 ：处理 then 方法回调函数的返回值</li>
+<li>支持 Promise 嵌套 ：能够正确处理返回 Promise 的情况</li>
+<li>类型安全 ：防止循环引用导致的无限递归</li>
+</ol>
+<h4 id="实际应用示例："><a href="#实际应用示例：" class="headerlink" title="实际应用示例："></a>实际应用示例：</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>))</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">r</span>) =&gt;</span> <span class="title function_">r</span>(res + <span class="number">1</span>)); <span class="comment">// 返回Promise</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res); <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">return</span> res + <span class="number">1</span>; <span class="comment">// 返回普通值</span></span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个方法确保了 Promise 链式调用时，无论回调函数返回的是普通值还是 Promise 对象，都能正确传递和处理值。</p>
+<h3 id="2-onFulfilled-和-onRejected-为什么必须异步执行"><a href="#2-onFulfilled-和-onRejected-为什么必须异步执行" class="headerlink" title="2. onFulfilled 和 onRejected 为什么必须异步执行"></a>2. onFulfilled 和 onRejected 为什么必须异步执行</h3><h4 id="规范要求"><a href="#规范要求" class="headerlink" title="规范要求"></a>规范要求</h4><ul>
+<li>Promise&#x2F;A+ 规范 2.2.4 条明确规定：onFulfilled 和 onRejected 必须异步执行</li>
+<li>即使 Promise 已经处于 resolved 状态，then 方法的回调也必须异步调用</li>
+</ul>
+<h4 id="执行顺序保证-："><a href="#执行顺序保证-：" class="headerlink" title="执行顺序保证 ："></a>执行顺序保证 ：</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应该是 3 -&gt; 2</span></span><br><span class="line"><span class="comment">// 如果同步执行则会输出 2 -&gt; 3</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="一致性保证"><a href="#一致性保证" class="headerlink" title="一致性保证"></a>一致性保证</h4><ul>
+<li>无论 Promise 是立即解决还是稍后解决，<code>then</code> 回调的执行时机保持一致。</li>
+<li>避免出现有时同步有时异步的不确定行为。</li>
+</ul>
+<h4 id="避免潜在问题"><a href="#避免潜在问题" class="headerlink" title="避免潜在问题"></a>避免潜在问题</h4><ul>
+<li>同步执行可能导致调用栈过深（如递归调用 <code>then</code> 方法时）。</li>
+<li>同步执行可能打断当前执行的代码流程，导致意外行为。</li>
+</ul>
+<h4 id="微任务机制"><a href="#微任务机制" class="headerlink" title="微任务机制"></a>微任务机制</h4><ul>
+<li>原生 Promise 使用微任务队列（microtask）实现异步。</li>
+<li>这里用 <code>setTimeout</code> 模拟（虽然它是宏任务），因为简单实现通常不区分微任务和宏任务。</li>
+</ul>
+<p><strong>实际应用场景示例：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果不异步执行，以下代码会有问题：</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">(<span class="params">num</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(num));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应为：1, 2, 4, 3</span></span><br><span class="line"><span class="comment">// 如果同步执行 then 回调，则会输出：1, 3, 2, 4</span></span><br></pre></td></tr></table></figure>
+
+<p>因此，虽然同步执行看起来更高效，但为了符合规范和行为一致性，必须使用异步执行。在更完整的实现中，应该使用微任务（如 queueMicrotask 或 process.nextTick）而不是 setTimeout，但这里作为简单实现已经足够。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/01/JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E3%80%81%E8%B0%83%E7%94%A8%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2327,320 +2579,9 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/05/01/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="wdw">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="前端那些事">
-      <meta itemprop="description" content="欢迎来到我的博客">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 前端那些事">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/05/01/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/" class="post-title-link" itemprop="url">学习目录</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-05-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-01T00:00:00+08:00">2018-05-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-01 21:18:54" itemprop="dateModified" datetime="2025-04-01T21:18:54+08:00">2025-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%9B%AE%E5%BD%95/" itemprop="url" rel="index"><span itemprop="name">目录</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <img src="/images/page-header.png" class="" title="首页展示 width&#x3D;50%">
-
-<!-- ![首页展示](/images/page-header.png)s -->
-
-<h2 id="算法题解"><a href="#算法题解" class="headerlink" title="算法题解"></a>算法题解</h2><h3 id="常见数据结构"><a href="#常见数据结构" class="headerlink" title="常见数据结构"></a>常见数据结构</h3><h4 id="数组-vs-链表"><a href="#数组-vs-链表" class="headerlink" title="数组 vs 链表"></a>数组 vs 链表</h4><p><strong>存储方式</strong></p>
-<ul>
-<li>数组：连续内存空间，预分配大小</li>
-<li>链表：节点离散存储，动态扩展</li>
-</ul>
-<p><strong>时间复杂度对比</strong></p>
-<table>
-<thead>
-<tr>
-<th>操作</th>
-<th>数组</th>
-<th>链表</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>随机访问</td>
-<td>O(1)</td>
-<td>O(n)</td>
-</tr>
-<tr>
-<td>头部插入</td>
-<td>O(n)</td>
-<td>O(1)</td>
-</tr>
-<tr>
-<td>尾部追加</td>
-<td>O(1)</td>
-<td>O(1)</td>
-</tr>
-</tbody></table>
-<p><strong>应用场景</strong></p>
-<ul>
-<li>数组：需要频繁随机访问（如矩阵运算）</li>
-<li>链表：频繁增删操作（如 LRU 缓存）</li>
-</ul>
-<h4 id="栈-队列"><a href="#栈-队列" class="headerlink" title="栈 &amp; 队列"></a>栈 &amp; 队列</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 最小栈实现（支持O(1)获取最小值）</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MinStack</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span> = [];</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span> = [<span class="title class_">Infinity</span>];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">push</span>(<span class="params">val</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">push</span>(val);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">push</span>(<span class="title class_">Math</span>.<span class="title function_">min</span>(val, <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>]));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">pop</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="title function_">pop</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pop</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">getMin</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">minStack</span>[<span class="variable language_">this</span>.<span class="property">minStack</span>.<span class="property">length</span> - <span class="number">1</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用队列实现栈</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyStack</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue = collections.deque()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">push</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="variable language_">self</span>.queue.append(x)</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(<span class="variable language_">self</span>.queue)-<span class="number">1</span>):</span><br><span class="line">            <span class="variable language_">self</span>.queue.append(<span class="variable language_">self</span>.queue.popleft())</span><br></pre></td></tr></table></figure>
-
-<h4 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h4><p><strong>冲突解决</strong></p>
-<ul>
-<li>开放寻址法：线性探测、二次探测</li>
-<li>链地址法：链表存储冲突元素（Java HashMap）</li>
-</ul>
-<h4 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h4><ul>
-<li>完全二叉树结构，可用数组实现</li>
-<li>应用场景：TopK 问题（时间复杂度 O(nlogk)）</li>
-</ul>
-<hr>
-<h3 id="典型算法"><a href="#典型算法" class="headerlink" title="典型算法"></a>典型算法</h3><p><strong>快速排序优化</strong></p>
-<ol>
-<li>三数取中法选择 pivot</li>
-<li>小数组切换插入排序</li>
-<li>三向切分（处理大量重复元素）</li>
-</ol>
-<p><strong>面试高频问题</strong></p>
-<ul>
-<li>如何判断链表有环？快慢指针 vs 哈希表</li>
-<li>二叉树层序遍历的时空复杂度？</li>
-<li>海量数据求 TopK 为什么用堆不用排序？</li>
-</ul>
-<h3 id="典型算法-1"><a href="#典型算法-1" class="headerlink" title="典型算法"></a>典型算法</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 快速排序示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">quickSort</span>(<span class="params">arr</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (arr.<span class="property">length</span> &lt;= <span class="number">1</span>) <span class="keyword">return</span> arr;</span><br><span class="line">  <span class="keyword">const</span> pivot = arr[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">const</span> left = [];</span><br><span class="line">  <span class="keyword">const</span> right = [];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; arr.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    arr[i] &lt; pivot ? left.<span class="title function_">push</span>(arr[i]) : right.<span class="title function_">push</span>(arr[i]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> [...<span class="title function_">quickSort</span>(left), pivot, ...<span class="title function_">quickSort</span>(right)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="前端核心"><a href="#前端核心" class="headerlink" title="前端核心"></a>前端核心</h2><h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><h4 id="原型链"><a href="#原型链" class="headerlink" title="原型链"></a>原型链</h4><p><strong>实现机制</strong></p>
-<ol>
-<li>每个对象都有 <code>__proto__</code> 属性指向构造函数的 prototype</li>
-<li>每个构造函数也是函数，其 <code>__proto__</code> 指向 Function.prototype</li>
-<li>Function.prototype 的 <code>__proto__</code> 指向 Object.prototype</li>
-<li>Object.prototype 的 <code>__proto__</code> 指向 null (原型链的终点即是 Object.prototype)</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">eat</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span> + <span class="string">&quot; eating&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Animal</span>(<span class="string">&quot;Tom&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">__proto__</span> === <span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h4><p><strong>实现方式</strong></p>
-<ol>
-<li>组合继承（推荐）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 组合继承（原型链+构造函数）</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Animal</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Animal</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Cat</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Animal</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 第二次调用Animal</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Animal</span>(); <span class="comment">// 第一次调用Animal</span></span><br><span class="line"><span class="title class_">Cat</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">constructor</span> = <span class="title class_">Cat</span>; <span class="comment">// 修复构造函数指向</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> cat = <span class="keyword">new</span> <span class="title class_">Cat</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">3</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(cat.<span class="property">colors</span>); <span class="comment">// [&quot;red&quot;, &quot;blue&quot;]</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>寄生组合式继承（推荐-最理想的继承形式）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">inheritPrototype</span>(<span class="params">child, parent</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> prototype = <span class="title class_">Object</span>.<span class="title function_">create</span>(parent.<span class="property"><span class="keyword">prototype</span></span>); <span class="comment">// 创建父类原型的副本</span></span><br><span class="line">  prototype.<span class="property">constructor</span> = child; <span class="comment">// 修复constructor指向</span></span><br><span class="line">  child.<span class="property"><span class="keyword">prototype</span></span> = prototype; <span class="comment">// 赋值给子类原型</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Parent</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">name</span> = name;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">colors</span> = [<span class="string">&quot;red&quot;</span>, <span class="string">&quot;blue&quot;</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Parent</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayName</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">name</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Child</span>(<span class="params">name, age</span>) &#123;</span><br><span class="line">  <span class="title class_">Parent</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>, name); <span class="comment">// 只调用一次父类构造函数</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">age</span> = age;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关键步骤：建立原型关系</span></span><br><span class="line"><span class="title function_">inheritPrototype</span>(<span class="title class_">Child</span>, <span class="title class_">Parent</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加子类方法</span></span><br><span class="line"><span class="title class_">Child</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">sayAge</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">age</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试用例</span></span><br><span class="line"><span class="keyword">const</span> child1 = <span class="keyword">new</span> <span class="title class_">Child</span>(<span class="string">&quot;Tom&quot;</span>, <span class="number">5</span>);</span><br><span class="line">child1.<span class="property">colors</span>.<span class="title function_">push</span>(<span class="string">&quot;green&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(child1.<span class="property">colors</span>); <span class="comment">// [&#x27;red&#x27;, &#x27;blue&#x27;, &#x27;green&#x27;]</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="JavaScript-继承方式对比"><a href="#JavaScript-继承方式对比" class="headerlink" title="JavaScript 继承方式对比"></a>JavaScript 继承方式对比</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>组合继承</th>
-<th>寄生组合式继承</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>实现方式</strong></td>
-<td>构造函数继承+原型链继承</td>
-<td>构造函数继承+原型拷贝</td>
-</tr>
-<tr>
-<td><strong>父类调用次数</strong></td>
-<td>2 次（构造函数和原型各 1 次）</td>
-<td>1 次（仅构造函数）</td>
-</tr>
-<tr>
-<td><strong>原型链纯度</strong></td>
-<td>子类原型包含多余父类实例属性</td>
-<td>纯净的原型链</td>
-</tr>
-<tr>
-<td><strong>内存效率</strong></td>
-<td>较低（重复属性）</td>
-<td>较高</td>
-</tr>
-<tr>
-<td><strong>代码复杂度</strong></td>
-<td>简单直接</td>
-<td>需要辅助函数</td>
-</tr>
-<tr>
-<td><strong>ES6 class 底层</strong></td>
-<td>不是</td>
-<td>是</td>
-</tr>
-<tr>
-<td><strong>适用场景</strong></td>
-<td>简单继承场景</td>
-<td>需要高效继承的复杂场景</td>
-</tr>
-<tr>
-<td><strong>方法复用</strong></td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td><strong>属性隔离</strong></td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td><strong>constructor 修正</strong></td>
-<td>需要手动修正</td>
-<td>需要手动修正</td>
-</tr>
-</tbody></table>
-<p><strong>关键区别总结</strong>：</p>
-<ol>
-<li>寄生组合式继承避免了组合继承的原型属性冗余问题</li>
-<li>寄生组合式继承是 ES6 class 语法糖的底层实现方式</li>
-<li>组合继承更易理解但性能稍差，适合简单继承场景</li>
-</ol>
-<h4 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h4><p><strong>核心特征</strong></p>
-<ul>
-<li>函数嵌套结构（函数内部定义函数）</li>
-<li>内部函数引用了外部函数的变量</li>
-<li>延长变量生命周期（内部函数在外部函数执行完毕后仍然可以被访问）</li>
-</ul>
-<p><strong>闭包的关键特征：</strong></p>
-<ul>
-<li>保持对词法作用域的引用</li>
-<li>即使外部函数已经执行完毕，闭包仍然可以访问外部函数的变量</li>
-<li>闭包会阻止垃圾回收机制回收被引用的变量</li>
-</ul>
-<p><strong>闭包的典型应用场景：</strong></p>
-<ul>
-<li>数据封装和私有变量</li>
-<li>回调函数</li>
-<li>函数柯里化</li>
-<li>模块模式</li>
-</ul>
-<p><strong>内存泄漏案例</strong></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createHeavy</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> bigData; <span class="comment">// 闭包持有bigData引用</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解决方案：显式释放引用</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">safeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> bigData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>);</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">getData</span>: <span class="function">() =&gt;</span> bigData,</span><br><span class="line">    <span class="attr">clear</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      bigData.<span class="property">length</span> = <span class="number">0</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="事件循环"><a href="#事件循环" class="headerlink" title="事件循环"></a>事件循环</h4><p><strong>浏览器环境</strong></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>), <span class="number">0</span>);</span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;3&quot;</span>));</span><br><span class="line"><span class="comment">// 输出顺序：1 -&gt; 3 -&gt; 2</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Node.js 环境</strong></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line">fs.<span class="title function_">readFile</span>(__filename, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;1&quot;</span>), <span class="number">0</span>);</span><br><span class="line">  <span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;2&quot;</span>));</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 输出顺序：2 -&gt; 1（在I/O阶段setImmediate优先）</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="React"><a href="#React" class="headerlink" title="React"></a>React</h3><h4 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h4><p><strong>类组件 vs 函数组件</strong></p>
-<ul>
-<li>挂载阶段：constructor → render → componentDidMount</li>
-<li>更新阶段：shouldComponentUpdate → render → componentDidUpdate</li>
-<li>卸载阶段：componentWillUnmount</li>
-</ul>
-<p><strong>Hooks 执行顺序</strong></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">App</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// componentDidMount</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 mounted&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;父组件 unmount&quot;</span>); <span class="comment">// componentWillUnmount</span></span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> [count, setCount] = <span class="title function_">useState</span>(<span class="number">0</span>); <span class="comment">// 状态初始化</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Hooks-使用"><a href="#Hooks-使用" class="headerlink" title="Hooks 使用"></a>Hooks 使用</h4><p><strong>最佳实践</strong></p>
-<ol>
-<li>用 useMemo 缓存昂贵计算</li>
-<li>用 useCallback 避免子组件无效重渲染</li>
-<li>自定义 Hook 封装通用逻辑</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 自定义Hook实现防抖</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useDebounce</span>(<span class="params">value, delay</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [debouncedValue, setDebouncedValue] = <span class="title function_">useState</span>(value);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> handler = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="title function_">setDebouncedValue</span>(value);</span><br><span class="line">    &#125;, delay);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">clearTimeout</span>(handler);</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;, [value, delay]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> debouncedValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="虚拟-DOM-原理"><a href="#虚拟-DOM-原理" class="headerlink" title="虚拟 DOM 原理"></a>虚拟 DOM 原理</h4><p><strong>Diff 算法优化策略</strong></p>
-<ol>
-<li>同级比较（时间复杂度 O(n^3)→O(n)）</li>
-<li>key 属性优化列表对比</li>
-<li>双缓存技术避免白屏</li>
-</ol>
-<hr>
-<hr>
-<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><h3 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h3><ul>
-<li>CAP 定理</li>
-<li>RESTful 设计</li>
-<li>缓存策略</li>
-</ul>
-<h3 id="典型系统"><a href="#典型系统" class="headerlink" title="典型系统"></a>典型系统</h3><ul>
-<li>短链接系统</li>
-<li>秒杀系统</li>
-<li>即时通讯系统</li>
-</ul>
-<hr>
-<h2 id="计算机基础"><a href="#计算机基础" class="headerlink" title="计算机基础"></a>计算机基础</h2><h3 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h3><ul>
-<li>进程&#x2F;线程</li>
-<li>内存管理</li>
-<li>文件系统</li>
-</ul>
-<h3 id="网络协议"><a href="#网络协议" class="headerlink" title="网络协议"></a>网络协议</h3><ul>
-<li>TCP&#x2F;IP 协议栈</li>
-<li>HTTP&#x2F;2 特性</li>
-<li>WebSocket 原理</li>
-</ul>
-<hr>
-<p>持续更新中…</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
 
 </div>
   </main>
