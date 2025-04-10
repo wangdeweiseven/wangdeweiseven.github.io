@@ -298,6 +298,137 @@
       </tags>
   </entry>
   <entry>
+    <title>Web安全必修课-XSS与CSRF攻击</title>
+    <url>/2022/07/05/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-XSS%E4%B8%8ECSRF%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h2 id="一、XSS-攻击（跨站脚本攻击）"><a href="#一、XSS-攻击（跨站脚本攻击）" class="headerlink" title="一、XSS 攻击（跨站脚本攻击）"></a>一、XSS 攻击（跨站脚本攻击）</h2><h3 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>想象在论坛的留言板里，攻击者提交的内容是：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">  盗取用户cookie的代码;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当其他用户浏览这条留言时，恶意脚本就会在他们的浏览器中执行，就像在真实的网站中运行一样</p>
+<h3 id="三种常见类型"><a href="#三种常见类型" class="headerlink" title="三种常见类型"></a>三种常见类型</h3><h4 id="1-反射型-XSS（临时攻击）"><a href="#1-反射型-XSS（临时攻击）" class="headerlink" title="1. 反射型 XSS（临时攻击）"></a>1. 反射型 XSS（临时攻击）</h4><ul>
+<li>通过 URL 参数注入恶意脚本</li>
+</ul>
+<ul>
+<li>示例链接：</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">https://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-存储型-XSS（持久化攻击）"><a href="#2-存储型-XSS（持久化攻击）" class="headerlink" title="2. 存储型 XSS（持久化攻击）"></a>2. 存储型 XSS（持久化攻击）</h4><ul>
+<li><p>恶意脚本被保存到数据库</p>
+</li>
+<li><p>常见场景：用户评论、私信内容</p>
+</li>
+</ul>
+<h4 id="3-DOM-型-XSS（纯前端攻击）"><a href="#3-DOM-型-XSS（纯前端攻击）" class="headerlink" title="3. DOM 型 XSS（纯前端攻击）"></a>3. DOM 型 XSS（纯前端攻击）</h4><ul>
+<li><p>不经过服务器，前端直接操作 DOM 时触发</p>
+</li>
+<li><p>示例代码</p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从URL获取参数直接插入页面</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">write</span>(location.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
+<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
+</blockquote>
+<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>HttpOnly - 重要安全属性，作用是：</p>
+<ul>
+<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
+<li>有效防范 XSS 攻击窃取 Cookie</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Secure - 安全传输属性，作用是：</p>
+<ul>
+<li>该 Cookie 只能通过 HTTPS 协议传输</li>
+<li>防止在 HTTP 明文传输中被窃听</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>
+<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><ol>
+<li>用户登录信任网站 A</li>
+<li>网站 A 下发身份 Cookie</li>
+<li>用户访问恶意网站 B</li>
+<li>网站 B 诱导浏览器向网站 A 发起请求</li>
+<li>浏览器自动携带 Cookie 完成请求</li>
+</ol>
+<h3 id="防御方案-1"><a href="#防御方案-1" class="headerlink" title="防御方案"></a>防御方案</h3><ol>
+<li>CSRF Token 验证</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端生成Token</span></span><br><span class="line"><span class="keyword">const</span> csrfToken = crypto.<span class="title function_">randomBytes</span>(<span class="number">16</span>).<span class="title function_">toString</span>(<span class="string">&#x27;hex&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 前端表单携带Token</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;/transfer&quot;</span> <span class="attr">method</span>=<span class="string">&quot;POST&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;_csrf&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&lt;%= csrfToken %&gt;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="comment">&lt;!-- 其他表单字段 --&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">// 服务端中间件验证</span></span><br><span class="line"><span class="language-xml">app.post(&#x27;/transfer&#x27;, (req, res) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">  if(req.body._csrf !== req.session.csrfToken) &#123;</span></span><br><span class="line"><span class="language-xml">    return res.status(403).send(&#x27;CSRF验证失败&#x27;);</span></span><br><span class="line"><span class="language-xml">  &#125;</span></span><br><span class="line"><span class="language-xml">  // 处理业务逻辑</span></span><br><span class="line"><span class="language-xml">&#125;);</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>SameSite Cookie 属性</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">SameSite</span>=<span class="title class_">Lax</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Strict：完全禁止第三方 Cookie</li>
+<li>Lax：允许部分安全请求（默认值）</li>
+<li>None：关闭保护（需配合 Secure）</li>
+</ul>
+<ol start="3">
+<li>验证请求来源</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 检查Referer头</span></span><br><span class="line"><span class="keyword">if</span> (</span><br><span class="line">  req.<span class="property">headers</span>.<span class="property">referer</span> &amp;&amp;</span><br><span class="line">  !req.<span class="property">headers</span>.<span class="property">referer</span>.<span class="title function_">startsWith</span>(<span class="string">&quot;https://trusted-domain.com&quot;</span>)</span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;非法请求来源&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>双重 Cookie 验证</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端在请求头中携带Cookie信息</span></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/transfer&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&quot;X-CSRF-TOKEN&quot;</span>: <span class="title function_">getCookie</span>(<span class="string">&quot;csrfToken&quot;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 服务端比对Cookie与Header中的值</span></span><br><span class="line"><span class="keyword">if</span> (req.<span class="property">headers</span>[<span class="string">&quot;x-csrf-token&quot;</span>] !== req.<span class="property">cookies</span>.<span class="property">csrfToken</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> res.<span class="title function_">status</span>(<span class="number">403</span>).<span class="title function_">send</span>(<span class="string">&quot;验证失败&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、实战防御组合拳"><a href="#三、实战防御组合拳" class="headerlink" title="三、实战防御组合拳"></a>三、实战防御组合拳</h2><h3 id="推荐防御策略"><a href="#推荐防御策略" class="headerlink" title="推荐防御策略"></a>推荐防御策略</h3><h4 id="1-XSS-综合防御"><a href="#1-XSS-综合防御" class="headerlink" title="1. XSS 综合防御"></a>1. XSS 综合防御</h4><ul>
+<li>输入校验 + 输出转义 + CSP 策略 + HttpOnly</li>
+</ul>
+<h4 id="2-CSRF-黄金组合"><a href="#2-CSRF-黄金组合" class="headerlink" title="2. CSRF 黄金组合"></a>2. CSRF 黄金组合</h4><ul>
+<li>CSRF Token + SameSite Cookie</li>
+</ul>
+<h3 id="现代框架最佳实践"><a href="#现代框架最佳实践" class="headerlink" title="现代框架最佳实践"></a>现代框架最佳实践</h3><ol>
+<li>React 项目配置 CSP</li>
+</ol>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span></span></span><br><span class="line"><span class="tag">  <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27;; </span></span></span><br><span class="line"><span class="string"><span class="tag">               script-src &#x27;self&#x27; &#x27;unsafe-eval&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               img-src https://*;&quot;</span></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>Express 中间件配置</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> csrf = <span class="built_in">require</span>(<span class="string">&quot;csurf&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> cookieParser = <span class="built_in">require</span>(<span class="string">&quot;cookie-parser&quot;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">cookieParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">csrf</span>(&#123; <span class="attr">cookie</span>: <span class="literal">true</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取CSRF Token</span></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&quot;/csrf-token&quot;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">  res.<span class="title function_">json</span>(&#123; <span class="attr">csrfToken</span>: req.<span class="title function_">csrfToken</span>() &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="渗透测试工具推荐"><a href="#渗透测试工具推荐" class="headerlink" title="渗透测试工具推荐"></a>渗透测试工具推荐</h3><ol>
+<li>使用 OWASP ZAP 自动扫描漏洞</li>
+<li>通过 Postman 手动测试 API 接口</li>
+<li>利用 Burp Suite 进行高级安全测试</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户访问恶意网站] --&gt; B[触发隐藏请求]</span><br><span class="line">    B --&gt; C[携带合法Cookie]</span><br><span class="line">    C --&gt; D[服务端执行危险操作]</span><br><span class="line">    D --&gt; E[攻击完成]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>防御措施实施后，建议定期使用自动化工具进行安全扫描，并建立漏洞响应机制。安全防护需要持&gt; 续维护，而非一劳永逸！</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Web安全</tag>
+        <tag>XSS与CSRF攻击</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Web安全必修课-Cookie的食用指南 🍪</title>
     <url>/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/</url>
     <content><![CDATA[<h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
@@ -432,137 +563,6 @@
         <tag>前端</tag>
         <tag>Web安全</tag>
         <tag>cookie的食用指南</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Web安全必修课-XSS与CSRF攻击</title>
-    <url>/2022/07/05/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-XSS%E4%B8%8ECSRF%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h2 id="一、XSS-攻击（跨站脚本攻击）"><a href="#一、XSS-攻击（跨站脚本攻击）" class="headerlink" title="一、XSS 攻击（跨站脚本攻击）"></a>一、XSS 攻击（跨站脚本攻击）</h2><h3 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>想象在论坛的留言板里，攻击者提交的内容是：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">  盗取用户cookie的代码;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>当其他用户浏览这条留言时，恶意脚本就会在他们的浏览器中执行，就像在真实的网站中运行一样</p>
-<h3 id="三种常见类型"><a href="#三种常见类型" class="headerlink" title="三种常见类型"></a>三种常见类型</h3><h4 id="1-反射型-XSS（临时攻击）"><a href="#1-反射型-XSS（临时攻击）" class="headerlink" title="1. 反射型 XSS（临时攻击）"></a>1. 反射型 XSS（临时攻击）</h4><ul>
-<li>通过 URL 参数注入恶意脚本</li>
-</ul>
-<ul>
-<li>示例链接：</li>
-</ul>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">https://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-存储型-XSS（持久化攻击）"><a href="#2-存储型-XSS（持久化攻击）" class="headerlink" title="2. 存储型 XSS（持久化攻击）"></a>2. 存储型 XSS（持久化攻击）</h4><ul>
-<li><p>恶意脚本被保存到数据库</p>
-</li>
-<li><p>常见场景：用户评论、私信内容</p>
-</li>
-</ul>
-<h4 id="3-DOM-型-XSS（纯前端攻击）"><a href="#3-DOM-型-XSS（纯前端攻击）" class="headerlink" title="3. DOM 型 XSS（纯前端攻击）"></a>3. DOM 型 XSS（纯前端攻击）</h4><ul>
-<li><p>不经过服务器，前端直接操作 DOM 时触发</p>
-</li>
-<li><p>示例代码</p>
-</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从URL获取参数直接插入页面</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">write</span>(location.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
-
-<h3 id="防御方案"><a href="#防御方案" class="headerlink" title="防御方案"></a>防御方案</h3><h4 id="1-输入过滤"><a href="#1-输入过滤" class="headerlink" title="1. 输入过滤"></a>1. 输入过滤</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 过滤特殊字符函数示例</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">input</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> input.<span class="title function_">replace</span>(<span class="regexp">/&lt;/g</span>, <span class="string">&quot;&amp;lt;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&gt;/g</span>, <span class="string">&quot;&amp;gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-输出转义"><a href="#2-输出转义" class="headerlink" title="2. 输出转义"></a>2. 输出转义</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 模板引擎自动转义（双花括号语法会自动对插入的内容进行HTML实体转义，如：&lt;script&gt; 会被转义为 &amp;lt;script&amp;gt;） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;&#123; userContent &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 手动转义示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&lt;%- dangerousData %&gt;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="3-Content-Security-Policy（简称-CSP-内容安全策略）"><a href="#3-Content-Security-Policy（简称-CSP-内容安全策略）" class="headerlink" title="3. Content-Security-Policy（简称:CSP 内容安全策略）"></a>3. Content-Security-Policy（简称:CSP 内容安全策略）</h4><blockquote>
-<p>是浏览器提供的一种强大的安全机制，主要用于防范跨站脚本攻击(XSS)等安全威胁。它的核心思想是通过白名单机制，告诉浏览器&gt; 哪些外部资源可以被加载和执行</p>
-</blockquote>
-<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Content-Security-Policy</span>:</span><br><span class="line">  default-src &#x27;self&#x27;;  // 默认策略，只允许加载同源资源</span><br><span class="line">  script-src &#x27;self&#x27; https://trusted.cdn.com; // 脚本只能从同源或指定CDN加载</span><br><span class="line">  img-src *; // 图片可以从任何来源加载</span><br><span class="line">  style-src &#x27;unsafe-inline&#x27;; //  允许内联样式(有一定风险)</span><br></pre></td></tr></table></figure>
-
-<h4 id="4-HttpOnly-Cookie"><a href="#4-HttpOnly-Cookie" class="headerlink" title="4. HttpOnly Cookie"></a>4. HttpOnly Cookie</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">HttpOnly</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>HttpOnly - 重要安全属性，作用是：</p>
-<ul>
-<li>禁止 JavaScript 通过 document.cookie 访问该 Cookie</li>
-<li>有效防范 XSS 攻击窃取 Cookie</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>Secure - 安全传输属性，作用是：</p>
-<ul>
-<li>该 Cookie 只能通过 HTTPS 协议传输</li>
-<li>防止在 HTTP 明文传输中被窃听</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="二、CSRF-攻击（跨站请求伪造）"><a href="#二、CSRF-攻击（跨站请求伪造）" class="headerlink" title="二、CSRF 攻击（跨站请求伪造）"></a>二、CSRF 攻击（跨站请求伪造）</h2><h3 id="攻击原理-1"><a href="#攻击原理-1" class="headerlink" title="攻击原理"></a>攻击原理</h3><p>假设用户登录了银行网站，攻击者构造的钓鱼页面中包含：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://bank.com/transfer?to=hacker&amp;amount=1000000&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>当用户访问该页面时，浏览器会自动携带银行网站的 Cookie 发起转账请求</p>
-<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><ol>
-<li>用户登录信任网站 A</li>
-<li>网站 A 下发身份 Cookie</li>
-<li>用户访问恶意网站 B</li>
-<li>网站 B 诱导浏览器向网站 A 发起请求</li>
-<li>浏览器自动携带 Cookie 完成请求</li>
-</ol>
-<h3 id="防御方案-1"><a href="#防御方案-1" class="headerlink" title="防御方案"></a>防御方案</h3><ol>
-<li>CSRF Token 验证</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 服务端生成Token</span></span><br><span class="line"><span class="keyword">const</span> csrfToken = crypto.<span class="title function_">randomBytes</span>(<span class="number">16</span>).<span class="title function_">toString</span>(<span class="string">&#x27;hex&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 前端表单携带Token</span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;/transfer&quot;</span> <span class="attr">method</span>=<span class="string">&quot;POST&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;_csrf&quot;</span> <span class="attr">value</span>=<span class="string">&quot;&lt;%= csrfToken %&gt;&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="comment">&lt;!-- 其他表单字段 --&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">// 服务端中间件验证</span></span><br><span class="line"><span class="language-xml">app.post(&#x27;/transfer&#x27;, (req, res) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">  if(req.body._csrf !== req.session.csrfToken) &#123;</span></span><br><span class="line"><span class="language-xml">    return res.status(403).send(&#x27;CSRF验证失败&#x27;);</span></span><br><span class="line"><span class="language-xml">  &#125;</span></span><br><span class="line"><span class="language-xml">  // 处理业务逻辑</span></span><br><span class="line"><span class="language-xml">&#125;);</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>SameSite Cookie 属性</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置Cookie时</span></span><br><span class="line"><span class="title class_">Set</span>-<span class="title class_">Cookie</span>: sessionId=abc123; <span class="title class_">SameSite</span>=<span class="title class_">Lax</span>; <span class="title class_">Secure</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>Strict：完全禁止第三方 Cookie</li>
-<li>Lax：允许部分安全请求（默认值）</li>
-<li>None：关闭保护（需配合 Secure）</li>
-</ul>
-<ol start="3">
-<li>验证请求来源</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 检查Referer头</span></span><br><span class="line"><span class="keyword">if</span> (</span><br><span class="line">  req.<span class="property">headers</span>.<span class="property">referer</span> &amp;&amp;</span><br><span class="line">  !req.<span class="property">headers</span>.<span class="property">referer</span>.<span class="title function_">startsWith</span>(<span class="string">&quot;https://trusted-domain.com&quot;</span>)</span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;非法请求来源&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>双重 Cookie 验证</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 前端在请求头中携带Cookie信息</span></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/transfer&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&quot;X-CSRF-TOKEN&quot;</span>: <span class="title function_">getCookie</span>(<span class="string">&quot;csrfToken&quot;</span>),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 服务端比对Cookie与Header中的值</span></span><br><span class="line"><span class="keyword">if</span> (req.<span class="property">headers</span>[<span class="string">&quot;x-csrf-token&quot;</span>] !== req.<span class="property">cookies</span>.<span class="property">csrfToken</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> res.<span class="title function_">status</span>(<span class="number">403</span>).<span class="title function_">send</span>(<span class="string">&quot;验证失败&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="三、实战防御组合拳"><a href="#三、实战防御组合拳" class="headerlink" title="三、实战防御组合拳"></a>三、实战防御组合拳</h2><h3 id="推荐防御策略"><a href="#推荐防御策略" class="headerlink" title="推荐防御策略"></a>推荐防御策略</h3><h4 id="1-XSS-综合防御"><a href="#1-XSS-综合防御" class="headerlink" title="1. XSS 综合防御"></a>1. XSS 综合防御</h4><ul>
-<li>输入校验 + 输出转义 + CSP 策略 + HttpOnly</li>
-</ul>
-<h4 id="2-CSRF-黄金组合"><a href="#2-CSRF-黄金组合" class="headerlink" title="2. CSRF 黄金组合"></a>2. CSRF 黄金组合</h4><ul>
-<li>CSRF Token + SameSite Cookie</li>
-</ul>
-<h3 id="现代框架最佳实践"><a href="#现代框架最佳实践" class="headerlink" title="现代框架最佳实践"></a>现代框架最佳实践</h3><ol>
-<li>React 项目配置 CSP</li>
-</ol>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span></span></span><br><span class="line"><span class="tag">  <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27;; </span></span></span><br><span class="line"><span class="string"><span class="tag">               script-src &#x27;self&#x27; &#x27;unsafe-eval&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               style-src &#x27;self&#x27; &#x27;unsafe-inline&#x27;;</span></span></span><br><span class="line"><span class="string"><span class="tag">               img-src https://*;&quot;</span></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>Express 中间件配置</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> csrf = <span class="built_in">require</span>(<span class="string">&quot;csurf&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> cookieParser = <span class="built_in">require</span>(<span class="string">&quot;cookie-parser&quot;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">cookieParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">csrf</span>(&#123; <span class="attr">cookie</span>: <span class="literal">true</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取CSRF Token</span></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&quot;/csrf-token&quot;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">  res.<span class="title function_">json</span>(&#123; <span class="attr">csrfToken</span>: req.<span class="title function_">csrfToken</span>() &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="渗透测试工具推荐"><a href="#渗透测试工具推荐" class="headerlink" title="渗透测试工具推荐"></a>渗透测试工具推荐</h3><ol>
-<li>使用 OWASP ZAP 自动扫描漏洞</li>
-<li>通过 Postman 手动测试 API 接口</li>
-<li>利用 Burp Suite 进行高级安全测试</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户访问恶意网站] --&gt; B[触发隐藏请求]</span><br><span class="line">    B --&gt; C[携带合法Cookie]</span><br><span class="line">    C --&gt; D[服务端执行危险操作]</span><br><span class="line">    D --&gt; E[攻击完成]</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>防御措施实施后，建议定期使用自动化工具进行安全扫描，并建立漏洞响应机制。安全防护需要持&gt; 续维护，而非一劳永逸！</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>Web安全</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>Web安全</tag>
-        <tag>XSS与CSRF攻击</tag>
       </tags>
   </entry>
   <entry>
