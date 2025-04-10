@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -370,6 +370,245 @@
 <li>添加代码复制按钮等增强功能</li>
 <li>实现目录自动滚动定位</li>
 </ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/09/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5&cookie%E8%AE%BF%E9%97%AE%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/09/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5&cookie%E8%AE%BF%E9%97%AE%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Web安全必修课-同源策略&cookie访问机制</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-07-09 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-09T00:00:00+08:00">2022-07-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-10 22:43:51" itemprop="dateModified" datetime="2025-04-10T22:43:51+08:00">2025-04-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/Web%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Web安全</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、为什么要采用同源策略"><a href="#一、为什么要采用同源策略" class="headerlink" title="一、为什么要采用同源策略"></a>一、为什么要采用同源策略</h2><p><strong>浏览器同源策略(Same-Origin Policy)是浏览器最核心的安全机制之一，用于限制不同源的文档或脚本如何相互交互。</strong></p>
+<h3 id="1-同源定义："><a href="#1-同源定义：" class="headerlink" title="1. 同源定义："></a>1. 同源定义：</h3><ul>
+<li>两个 URL 的协议(protocol)、主机(host)和端口(port)完全相同才属于同源</li>
+<li>例如：</li>
+<li><a href="http://example.com/a.html">http://example.com/a.html</a> 和 <a href="http://example.com/b.html">http://example.com/b.html</a> → 同源</li>
+<li><a href="http://example.com/">http://example.com</a> 和 <a href="https://example.com/">https://example.com</a> → 不同源(协议不同)</li>
+<li><a href="http://example.com/">http://example.com</a> 和 <a target="_blank" rel="noopener" href="http://sub.example.com/">http://sub.example.com</a> → 不同源(主机不同)</li>
+<li><a href="http://example.com/">http://example.com:80</a> 和 <a href="http://example.com:8080/">http://example.com:8080</a> → 不同源(端口不同)</li>
+</ul>
+<h3 id="2-限制范围："><a href="#2-限制范围：" class="headerlink" title="2. 限制范围："></a>2. 限制范围：</h3><ul>
+<li>DOM 访问：禁止跨源读取 DOM（iframe 内容、window.open 打开的窗口）</li>
+<li>数据请求：限制 XMLHttpRequest&#x2F;fetch 跨源请求</li>
+<li>Cookie&#x2F;LocalStorage：限制跨源访问</li>
+<li>Web Workers：部分限制</li>
+</ul>
+<h3 id="3-常见场景-："><a href="#3-常见场景-：" class="headerlink" title="3.常见场景 ："></a>3.常见场景 ：</h3><ul>
+<li><p>你提到的 localhost:3000 和 localhost:5000 ：</p>
+<ul>
+<li>虽然都是 localhost，但端口不同 → 不同源 ，默认不共享 cookie</li>
+</ul>
+</li>
+<li><p>子域名之间：</p>
+<ul>
+<li>a.example.com 和 b.example.com → 不同源</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-解决方案："><a href="#4-解决方案：" class="headerlink" title="4. 解决方案："></a>4. 解决方案：</h3><ul>
+<li><p>CORS(跨源资源共享)：服务器设置 Access-Control-Allow-Origin 响应头</p>
+</li>
+<li><p>postMessage：跨文档通信 API</p>
+</li>
+<li><p>代理服务器：同源服务器转发请求</p>
+</li>
+<li><p>修改 document.domain(仅限子域名间)</p>
+</li>
+<li><p>对于 cookie：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置domain为父域名可使子域名共享cookie</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=value; domain=.example.com; path=/&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="5-特殊说明-："><a href="#5-特殊说明-：" class="headerlink" title="5. 特殊说明 ："></a>5. 特殊说明 ：</h3><ul>
+<li>某些操作不受同源策略限制：<ul>
+<li>跨源资源嵌入： <code>&lt;img&gt; , &lt;script&gt; , &lt;link&gt; , &lt;iframe&gt;</code>s 等标签</li>
+<li>跨源写操作：表单提交、重定向</li>
+</ul>
+</li>
+</ul>
+<p><strong>同源策略是保护用户隐私和数据安全的重要机制，理解它对 Web 开发至关重要。</strong></p>
+<hr>
+<h2 id="二、cookie-访问机制"><a href="#二、cookie-访问机制" class="headerlink" title="二、cookie 访问机制"></a>二、cookie 访问机制</h2><p><strong>Cookie 的访问机制涉及多个方面，以下是关键机制说明：</strong></p>
+<ol>
+<li><p>存储机制 ：</p>
+<ul>
+<li>浏览器收到服务器响应头中的 Set-Cookie 时会存储 cookie</li>
+<li>存储位置：浏览器分配的专门 cookie 存储区域</li>
+<li>存储格式：键值对，附带属性（如 Domain、Path 等）</li>
+</ul>
+</li>
+<li><p>发送机制 ：</p>
+<ul>
+<li>符合以下条件时浏览器会自动在请求头中携带 cookie：<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>name=value; name2=value2</span><br></pre></td></tr></table></figure></li>
+<li>匹配规则：<ul>
+<li>Domain 匹配：cookie 的 domain 必须是当前域或其父域</li>
+<li>Path 匹配：cookie 的 path 必须是请求路径的前缀</li>
+<li>安全要求：Secure cookie 仅通过 HTTPS 发送</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>访问控制 ：</p>
+<ul>
+<li><p>前端访问：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 读取所有可访问cookie（不含HttpOnly）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span>; <span class="comment">// 返回&quot;name=value; name2=value2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 写入cookie（不能设置HttpOnly/Secure）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=new_value; path=/; max-age=3600&quot;</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>服务端访问：通过请求头直接读取完整 cookie</p>
+</li>
+</ul>
+</li>
+<li><p>安全限制 ：</p>
+<ul>
+<li>HttpOnly：禁止 JavaScript 访问（防 XSS）</li>
+<li>Secure：仅限 HTTPS 传输</li>
+<li>SameSite：<ul>
+<li>Strict：完全禁止跨站发送</li>
+<li>Lax：允许安全方法(GET)的跨站发送</li>
+<li>None：允许跨站发送（需配合 Secure）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>跨域规则 ：</p>
+<ul>
+<li>默认情况下，不同协议&#x2F;端口&#x2F;域名的 cookie 隔离</li>
+<li>例外情况：<ul>
+<li>显式设置 Domain 为父域： .example.com 可被子域共享</li>
+<li>现代浏览器默认不隔离端口（如 localhost:3000 和 localhost:5000）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>自动管理 ：</p>
+<ul>
+<li>过期自动删除（Expires&#x2F;Max-Age）</li>
+<li>超出数量&#x2F;大小时按 LRU 策略清理</li>
+<li>会话 cookie 在关闭浏览器时清除</li>
+</ul>
+</li>
+</ol>
+<p>补充说明：<strong>你代码注释中提到的 Secure 和 HttpOnly 属性确实是控制 cookie 访问权限的关键安全机制。</strong></p>
+<hr>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><p>详细解释 Cookie 的隔离机制和例外情况：</p>
+<ol>
+<li><p>默认隔离规则 ：</p>
+<ul>
+<li>协议隔离： http:&#x2F;&#x2F; 和 https:&#x2F;&#x2F; 的 cookie 默认隔离</li>
+<li>端口隔离：理论上不同端口 cookie 应隔离，但浏览器实现有差异</li>
+<li>域名隔离： a.com 和 b.com 完全隔离， sub.a.com 和 a.com 也默认隔离</li>
+</ul>
+</li>
+<li><p>端口隔离的特殊性 ：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// localhost:3000 和 localhost:5000 的cookie共享情况：</span></span><br><span class="line"><span class="comment">// 1. 规范要求隔离，但现代浏览器(Chrome/Firefox)默认不隔离</span></span><br><span class="line"><span class="comment">// 2. 可通过显式设置端口强制隔离：</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=value; port=3000&quot;</span>; <span class="comment">// 非标准属性，部分浏览器支持</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Domain 属性的作用 ：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置父域cookie（可被子域共享）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;cross_sub=val; domain=.example.com; path=/&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子域能读取父域cookie，反之不行</span></span><br><span class="line"><span class="comment">// a.example.com 可读取 .example.com 的cookie</span></span><br><span class="line"><span class="comment">// example.com 不能读取 a.example.com 的cookie</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>协议隔离的例外 ：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 当设置Secure属性时，cookie会被https协议独占</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;secure_cookie=val; Secure&quot;</span>; <span class="comment">// 仅HTTPS可用</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 没有Secure属性的https cookie可能会被http访问（不安全）</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现代浏览器行为 ：</p>
+<ul>
+<li><p>Chrome&#x2F;Firefox：默认允许同域名不同端口共享 cookie</p>
+</li>
+<li><p>Safari：较严格，部分版本会隔离端口</p>
+</li>
+<li><p>可通过 SameSite 属性进一步控制：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 完全禁止跨站发送（包括子域）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;strict_cookie=val; SameSite=Strict&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 允许安全跨站（GET请求）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;lax_cookie=val; SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>实际开发建议 ：</p>
+<ul>
+<li>明确设置 Domain 属性避免歧义</li>
+<li>重要 cookie 始终添加 Secure 和 HttpOnly</li>
+<li>跨域场景使用 SameSite+Lax 平衡安全与功能</li>
+<li>测试不同浏览器的 cookie 行为差异</li>
+</ul>
+</li>
+</ol>
+<p><strong>特别注意：虽然现代浏览器默认不隔离端口，但这是非标准行为，不应依赖此特性实现核心功能。</strong></p>
 
       
     </div>
@@ -1568,7 +1807,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-09 22:14:43" itemprop="dateModified" datetime="2025-04-09T22:14:43+08:00">2025-04-09</time>
+      <time title="修改时间：2025-04-10 16:52:27" itemprop="dateModified" datetime="2025-04-10T16:52:27+08:00">2025-04-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1758,6 +1997,7 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果不异步执行，以下代码会有问题：</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">(<span class="params">num</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(num));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应为：1, 2, 4, 3</span></span><br><span class="line"><span class="comment">// 如果同步执行 then 回调，则会输出：1, 3, 2, 4</span></span><br></pre></td></tr></table></figure>
 
 <p>因此，虽然同步执行看起来更高效，但为了符合规范和行为一致性，必须使用异步执行。在更完整的实现中，应该使用微任务（如 queueMicrotask 或 process.nextTick）而不是 setTimeout，但这里作为简单实现已经足够。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://es6.ruanyifeng.com/#docs/promise">阮大神-ES6</a></p>
 
       
     </div>
@@ -2190,377 +2430,6 @@
 <h3 id="核心规则："><a href="#核心规则：" class="headerlink" title="核心规则："></a>核心规则：</h3><blockquote>
 <p>同步代码 → 微任务队列清空 → 一个宏任务 → 微任务队列清空 → 下一个宏任务…<br>理解事件循环的优先级机制，能够帮助开发者更好地控制代码执行顺序，避免异步逻辑的混乱。</p>
 </blockquote>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="wdw">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="前端那些事">
-      <meta itemprop="description" content="欢迎来到我的博客">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 前端那些事">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/" class="post-title-link" itemprop="url">css预编译器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2022-03-30 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-30T00:00:00+08:00">2022-03-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-30 10:03:33" itemprop="dateModified" datetime="2025-03-30T10:03:33+08:00">2025-03-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/css/" itemprop="url" rel="index"><span itemprop="name">css</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="1-Sass-Syntactically-Awesome-Style-Sheets"><a href="#1-Sass-Syntactically-Awesome-Style-Sheets" class="headerlink" title="1. Sass (Syntactically Awesome Style Sheets)"></a>1. Sass (Syntactically Awesome Style Sheets)</h3><p><strong>特点：</strong></p>
-<ul>
-<li>最成熟的 CSS 预处理器</li>
-<li>提供两种语法格式：<ul>
-<li><code>.scss</code> (Sassy CSS) - 兼容 CSS 语法</li>
-<li><code>.sass</code> - 缩进语法（不使用大括号和分号）</li>
-</ul>
-</li>
-<li>需要 Ruby 环境（LibSass 版本不需要）</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">$primary-color</span>: <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="keyword">@mixin</span> border-radius(<span class="variable">$radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">$radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承</span></span><br><span class="line"><span class="selector-class">.message</span> &#123;</span><br><span class="line">  <span class="attribute">border</span>: <span class="number">1px</span> solid <span class="number">#ccc</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-class">.success</span> &#123;</span><br><span class="line">  <span class="keyword">@extend</span> .message;</span><br><span class="line">  <span class="attribute">color</span>: green;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-Less-Leaner-Style-Sheets"><a href="#2-Less-Leaner-Style-Sheets" class="headerlink" title="2.Less (Leaner Style Sheets)"></a>2.Less (Leaner Style Sheets)</h3><p><strong>特点：</strong></p>
-<ul>
-<li>受 Sass 启发，语法更接近原生 CSS</li>
-<li>使用 JavaScript 实现（Node.js）</li>
-<li>浏览器端可直接运行（开发环境）</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">@primary-color:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="selector-class">.border-radius</span>(<span class="variable">@radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运算</span></span><br><span class="line"><span class="variable">@base:</span> <span class="number">5%</span>;</span><br><span class="line"><span class="variable">@filler:</span> <span class="variable">@base</span> * <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-Stylus"><a href="#3-Stylus" class="headerlink" title="3.Stylus"></a>3.Stylus</h3><p><strong>特点：</strong></p>
-<ul>
-<li>语法最灵活（可选括号、分号、冒号）</li>
-<li>Node.js 实现</li>
-<li>强调简洁性和表现力</li>
-</ul>
-<p><strong>核心功能：</strong></p>
-<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量（可省略$）</span></span><br><span class="line">primary-<span class="attribute">color</span> = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span></span><br><span class="line">  <span class="selector-tag">ul</span></span><br><span class="line">    <span class="attribute">margin</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="attribute">border-radius</span>(radius)</span><br><span class="line">  <span class="attribute">border-radius</span> radius</span><br><span class="line"></span><br><span class="line"><span class="comment">// 内置函数</span></span><br><span class="line"><span class="built_in">lighten</span>(color, <span class="number">10%</span>)</span><br></pre></td></tr></table></figure>
-
-<h3 id="三者异同"><a href="#三者异同" class="headerlink" title="三者异同"></a>三者异同</h3><h4 id="模块化能力对比"><a href="#模块化能力对比" class="headerlink" title="模块化能力对比"></a>模块化能力对比</h4><table>
-<thead>
-<tr>
-<th>模块化特性</th>
-<th>Sass&#x2F;SCSS</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>基础导入</strong></td>
-<td><code>@import</code> (旧版)</td>
-<td><code>@import</code></td>
-<td><code>@import</code></td>
-</tr>
-<tr>
-<td><strong>现代模块系统</strong></td>
-<td><code>@use</code> + <code>@forward</code> (Dart Sass)</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>命名空间</strong></td>
-<td>通过<code>@use</code>引入带前缀</td>
-<td>无原生支持</td>
-<td>无原生支持</td>
-</tr>
-<tr>
-<td><strong>私有成员</strong></td>
-<td><code>-</code>或<code>_</code>前缀变量</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>依赖管理</strong></td>
-<td>自动避免重复导入</td>
-<td>需手动管理</td>
-<td>需手动管理</td>
-</tr>
-<tr>
-<td><strong>局部文件</strong></td>
-<td><code>_partial.scss</code>约定</td>
-<td><code>_partial.less</code>约定</td>
-<td><code>_partial.styl</code>约定</td>
-</tr>
-<tr>
-<td><strong>CSS 输出控制</strong></td>
-<td><code>@forward</code>隐藏&#x2F;暴露特定成员</td>
-<td>无</td>
-<td>无</td>
-</tr>
-<tr>
-<td><strong>变量覆盖</strong></td>
-<td><code>!default</code>标记可覆盖变量</td>
-<td>后定义覆盖前定义</td>
-<td>后定义覆盖前定义</td>
-</tr>
-<tr>
-<td><strong>跨文件共享</strong></td>
-<td>通过<code>@use</code>共享</td>
-<td>全局自动共享</td>
-<td>全局自动共享</td>
-</tr>
-<tr>
-<td><strong>按需加载</strong></td>
-<td>支持条件导入</td>
-<td>全部导入</td>
-<td>支持条件导入</td>
-</tr>
-</tbody></table>
-<h4 id="典型代码示例"><a href="#典型代码示例" class="headerlink" title="典型代码示例"></a>典型代码示例</h4><p><strong>Sass 模块化 (现代方式)</strong></p>
-<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// _variables.scss</span></span><br><span class="line"><span class="variable">$primary</span>: <span class="number">#333</span> !default;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.scss</span></span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;variables&quot;</span> as vars;</span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;buttons&quot;</span> with (</span><br><span class="line">  <span class="variable">$primary</span>: vars.<span class="variable">$primary</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<p><strong>Less 模块化</strong></p>
-<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// variables.less</span></span><br><span class="line"><span class="variable">@primary:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.less</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;variables&quot;</span>;</span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;buttons&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<p><strong>Stylus 模块化</strong></p>
-<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// variables.styl</span></span><br><span class="line">primary = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// main.styl</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;variables&#x27;</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;buttons&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>注意:</p>
-<ol>
-<li><p>Less 中的变量，在声明中使用时，如果出现多次赋值的情况，其会取最后一次赋值的值</p>
-</li>
-<li><p>Sass&#x2F;Stylus 中的变量，如果出现多次赋值的情况，其会取声明前面最近的一次赋值的值</p>
-</li>
-</ol>
-<h4 id="模块化建议："><a href="#模块化建议：" class="headerlink" title="模块化建议："></a>模块化建议：</h4><ul>
-<li>需要严格隔离 → 选择 Sass 的 @use 系统</li>
-<li>简单项目 → Less&#x2F;Stylus 的基础导入已足够</li>
-<li>变量共享 → Sass 的命名空间最安全</li>
-<li>旧项目维护 → 注意 Sass 的 @import 已被标记为废弃</li>
-</ul>
-<h4 id="三种-CSS-预编译器对比"><a href="#三种-CSS-预编译器对比" class="headerlink" title="三种 CSS 预编译器对比"></a>三种 CSS 预编译器对比</h4><table>
-<thead>
-<tr>
-<th>对比维度</th>
-<th>Sass&#x2F;SCSS</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>诞生时间</strong></td>
-<td>2006 年 (最早期)</td>
-<td>2009 年 (受 Sass 启发)</td>
-<td>2010 年 (最新)</td>
-</tr>
-<tr>
-<td><strong>语法风格</strong></td>
-<td><code>.scss</code>兼容 CSS &#x2F; <code>.sass</code>缩进语法</td>
-<td>完全兼容 CSS 语法</td>
-<td>极简语法（符号可选）</td>
-</tr>
-<tr>
-<td><strong>运行环境</strong></td>
-<td>Ruby (或 LibSass 的 C 版本)</td>
-<td>JavaScript (Node.js)</td>
-<td>JavaScript (Node.js)</td>
-</tr>
-<tr>
-<td><strong>变量声明</strong></td>
-<td><code>$var: value;</code></td>
-<td><code>@var: value;</code></td>
-<td><code>var = value</code> 或 <code>var: value</code></td>
-</tr>
-<tr>
-<td><strong>嵌套规则</strong></td>
-<td>支持完整嵌套</td>
-<td>支持完整嵌套</td>
-<td>支持（缩进敏感）</td>
-</tr>
-<tr>
-<td><strong>Mixin</strong></td>
-<td><code>@mixin</code>定义 &#x2F; <code>@include</code>调用</td>
-<td>类式混合（直接调用）</td>
-<td>函数式定义</td>
-</tr>
-<tr>
-<td><strong>继承</strong></td>
-<td><code>@extend</code></td>
-<td>无（通过 Mixins 模拟）</td>
-<td><code>@extend</code></td>
-</tr>
-<tr>
-<td><strong>运算能力</strong></td>
-<td>支持复杂数学运算</td>
-<td>基础运算</td>
-<td>支持运算和内置函数</td>
-</tr>
-<tr>
-<td><strong>条件语句</strong></td>
-<td><code>@if/@else</code></td>
-<td>有限支持（通过 when）</td>
-<td>完整 if&#x2F;else 支持</td>
-</tr>
-<tr>
-<td><strong>循环语句</strong></td>
-<td><code>@for/@each/@while</code></td>
-<td>有限循环</td>
-<td>完整循环支持</td>
-</tr>
-<tr>
-<td><strong>模块化</strong></td>
-<td><code>@use</code>&#x2F;<code>@forward</code> (新版)</td>
-<td><code>@import</code></td>
-<td><code>@import</code></td>
-</tr>
-<tr>
-<td><strong>错误处理</strong></td>
-<td>详细错误报告</td>
-<td>基础错误提示</td>
-<td>相对简洁的错误提示</td>
-</tr>
-<tr>
-<td><strong>编译速度</strong></td>
-<td>较快（LibSass 版本）</td>
-<td>中等</td>
-<td>最快</td>
-</tr>
-<tr>
-<td><strong>社区生态</strong></td>
-<td>最庞大（Bootstrap 早期使用）</td>
-<td>较大（Bootstrap v3 采用）</td>
-<td>较小但活跃</td>
-</tr>
-<tr>
-<td><strong>典型用户</strong></td>
-<td>GitHub, Airbnb, Shopify</td>
-<td>Bootstrap 3, 早期 React 项目</td>
-<td>Vue 生态（早期 Vue-loader 集成）</td>
-</tr>
-</tbody></table>
-<h3 id="特色功能对比"><a href="#特色功能对比" class="headerlink" title="特色功能对比"></a>特色功能对比</h3><table>
-<thead>
-<tr>
-<th>高级功能</th>
-<th>Sass</th>
-<th>Less</th>
-<th>Stylus</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>颜色函数</strong></td>
-<td>提供 20+颜色操作函数</td>
-<td>基础颜色混合</td>
-<td>内置 lighten&#x2F;darken 等</td>
-</tr>
-<tr>
-<td><strong>父选择器</strong></td>
-<td><code>&amp;</code> 高度灵活</td>
-<td><code>&amp;</code> 基本功能</td>
-<td><code>&amp;</code> 支持层级引用</td>
-</tr>
-<tr>
-<td><strong>自定义函数</strong></td>
-<td><code>@function</code></td>
-<td>通过插件扩展</td>
-<td>内置函数式支持</td>
-</tr>
-<tr>
-<td><strong>CSS 兼容</strong></td>
-<td>完全兼容 CSS</td>
-<td>完全兼容 CSS</td>
-<td>需要转换语法</td>
-</tr>
-<tr>
-<td><strong>动态导入</strong></td>
-<td>支持运行时导入</td>
-<td>静态导入</td>
-<td>支持条件导入</td>
-</tr>
-<tr>
-<td><strong>源码映射</strong></td>
-<td>完整 sourcemap 支持</td>
-<td>基础支持</td>
-<td>完整支持</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>选择建议：</p>
-<ul>
-<li><strong>企业级项目</strong> → Sass（稳定性和功能完整性）</li>
-<li><strong>前端框架集成</strong> → Less（纯 JS 实现优势）</li>
-<li><strong>开发效率优先</strong> → Stylus（极简语法和快速原型）</li>
-<li><strong>已有技术栈</strong> → 优先匹配现有生态</li>
-</ul>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
 
       
     </div>

@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -184,6 +184,377 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/03/30/css%E9%A2%84%E7%BC%96%E8%AF%91/" class="post-title-link" itemprop="url">css预编译器</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-30 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-30T00:00:00+08:00">2022-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-03-30 10:03:33" itemprop="dateModified" datetime="2025-03-30T10:03:33+08:00">2025-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/css/" itemprop="url" rel="index"><span itemprop="name">css</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="1-Sass-Syntactically-Awesome-Style-Sheets"><a href="#1-Sass-Syntactically-Awesome-Style-Sheets" class="headerlink" title="1. Sass (Syntactically Awesome Style Sheets)"></a>1. Sass (Syntactically Awesome Style Sheets)</h3><p><strong>特点：</strong></p>
+<ul>
+<li>最成熟的 CSS 预处理器</li>
+<li>提供两种语法格式：<ul>
+<li><code>.scss</code> (Sassy CSS) - 兼容 CSS 语法</li>
+<li><code>.sass</code> - 缩进语法（不使用大括号和分号）</li>
+</ul>
+</li>
+<li>需要 Ruby 环境（LibSass 版本不需要）</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">$primary-color</span>: <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="keyword">@mixin</span> border-radius(<span class="variable">$radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">$radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承</span></span><br><span class="line"><span class="selector-class">.message</span> &#123;</span><br><span class="line">  <span class="attribute">border</span>: <span class="number">1px</span> solid <span class="number">#ccc</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-class">.success</span> &#123;</span><br><span class="line">  <span class="keyword">@extend</span> .message;</span><br><span class="line">  <span class="attribute">color</span>: green;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-Less-Leaner-Style-Sheets"><a href="#2-Less-Leaner-Style-Sheets" class="headerlink" title="2.Less (Leaner Style Sheets)"></a>2.Less (Leaner Style Sheets)</h3><p><strong>特点：</strong></p>
+<ul>
+<li>受 Sass 启发，语法更接近原生 CSS</li>
+<li>使用 JavaScript 实现（Node.js）</li>
+<li>浏览器端可直接运行（开发环境）</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="variable">@primary-color:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span> &#123;</span><br><span class="line">  <span class="selector-tag">ul</span> &#123;</span><br><span class="line">    <span class="attribute">margin</span>: <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="selector-class">.border-radius</span>(<span class="variable">@radius</span>) &#123;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运算</span></span><br><span class="line"><span class="variable">@base:</span> <span class="number">5%</span>;</span><br><span class="line"><span class="variable">@filler:</span> <span class="variable">@base</span> * <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-Stylus"><a href="#3-Stylus" class="headerlink" title="3.Stylus"></a>3.Stylus</h3><p><strong>特点：</strong></p>
+<ul>
+<li>语法最灵活（可选括号、分号、冒号）</li>
+<li>Node.js 实现</li>
+<li>强调简洁性和表现力</li>
+</ul>
+<p><strong>核心功能：</strong></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 变量（可省略$）</span></span><br><span class="line">primary-<span class="attribute">color</span> = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 嵌套</span></span><br><span class="line"><span class="selector-tag">nav</span></span><br><span class="line">  <span class="selector-tag">ul</span></span><br><span class="line">    <span class="attribute">margin</span> <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Mixin</span></span><br><span class="line"><span class="attribute">border-radius</span>(radius)</span><br><span class="line">  <span class="attribute">border-radius</span> radius</span><br><span class="line"></span><br><span class="line"><span class="comment">// 内置函数</span></span><br><span class="line"><span class="built_in">lighten</span>(color, <span class="number">10%</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="三者异同"><a href="#三者异同" class="headerlink" title="三者异同"></a>三者异同</h3><h4 id="模块化能力对比"><a href="#模块化能力对比" class="headerlink" title="模块化能力对比"></a>模块化能力对比</h4><table>
+<thead>
+<tr>
+<th>模块化特性</th>
+<th>Sass&#x2F;SCSS</th>
+<th>Less</th>
+<th>Stylus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>基础导入</strong></td>
+<td><code>@import</code> (旧版)</td>
+<td><code>@import</code></td>
+<td><code>@import</code></td>
+</tr>
+<tr>
+<td><strong>现代模块系统</strong></td>
+<td><code>@use</code> + <code>@forward</code> (Dart Sass)</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>命名空间</strong></td>
+<td>通过<code>@use</code>引入带前缀</td>
+<td>无原生支持</td>
+<td>无原生支持</td>
+</tr>
+<tr>
+<td><strong>私有成员</strong></td>
+<td><code>-</code>或<code>_</code>前缀变量</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>依赖管理</strong></td>
+<td>自动避免重复导入</td>
+<td>需手动管理</td>
+<td>需手动管理</td>
+</tr>
+<tr>
+<td><strong>局部文件</strong></td>
+<td><code>_partial.scss</code>约定</td>
+<td><code>_partial.less</code>约定</td>
+<td><code>_partial.styl</code>约定</td>
+</tr>
+<tr>
+<td><strong>CSS 输出控制</strong></td>
+<td><code>@forward</code>隐藏&#x2F;暴露特定成员</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>变量覆盖</strong></td>
+<td><code>!default</code>标记可覆盖变量</td>
+<td>后定义覆盖前定义</td>
+<td>后定义覆盖前定义</td>
+</tr>
+<tr>
+<td><strong>跨文件共享</strong></td>
+<td>通过<code>@use</code>共享</td>
+<td>全局自动共享</td>
+<td>全局自动共享</td>
+</tr>
+<tr>
+<td><strong>按需加载</strong></td>
+<td>支持条件导入</td>
+<td>全部导入</td>
+<td>支持条件导入</td>
+</tr>
+</tbody></table>
+<h4 id="典型代码示例"><a href="#典型代码示例" class="headerlink" title="典型代码示例"></a>典型代码示例</h4><p><strong>Sass 模块化 (现代方式)</strong></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// _variables.scss</span></span><br><span class="line"><span class="variable">$primary</span>: <span class="number">#333</span> !default;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.scss</span></span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;variables&quot;</span> as vars;</span><br><span class="line"><span class="keyword">@use</span> <span class="string">&quot;buttons&quot;</span> with (</span><br><span class="line">  <span class="variable">$primary</span>: vars.<span class="variable">$primary</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>Less 模块化</strong></p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// variables.less</span></span><br><span class="line"><span class="variable">@primary:</span> <span class="number">#333</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.less</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;variables&quot;</span>;</span><br><span class="line"><span class="keyword">@import</span> <span class="string">&quot;buttons&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Stylus 模块化</strong></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// variables.styl</span></span><br><span class="line">primary = <span class="selector-id">#333</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// main.styl</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;variables&#x27;</span></span><br><span class="line"><span class="keyword">@import</span> <span class="string">&#x27;buttons&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意:</p>
+<ol>
+<li><p>Less 中的变量，在声明中使用时，如果出现多次赋值的情况，其会取最后一次赋值的值</p>
+</li>
+<li><p>Sass&#x2F;Stylus 中的变量，如果出现多次赋值的情况，其会取声明前面最近的一次赋值的值</p>
+</li>
+</ol>
+<h4 id="模块化建议："><a href="#模块化建议：" class="headerlink" title="模块化建议："></a>模块化建议：</h4><ul>
+<li>需要严格隔离 → 选择 Sass 的 @use 系统</li>
+<li>简单项目 → Less&#x2F;Stylus 的基础导入已足够</li>
+<li>变量共享 → Sass 的命名空间最安全</li>
+<li>旧项目维护 → 注意 Sass 的 @import 已被标记为废弃</li>
+</ul>
+<h4 id="三种-CSS-预编译器对比"><a href="#三种-CSS-预编译器对比" class="headerlink" title="三种 CSS 预编译器对比"></a>三种 CSS 预编译器对比</h4><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>Sass&#x2F;SCSS</th>
+<th>Less</th>
+<th>Stylus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>诞生时间</strong></td>
+<td>2006 年 (最早期)</td>
+<td>2009 年 (受 Sass 启发)</td>
+<td>2010 年 (最新)</td>
+</tr>
+<tr>
+<td><strong>语法风格</strong></td>
+<td><code>.scss</code>兼容 CSS &#x2F; <code>.sass</code>缩进语法</td>
+<td>完全兼容 CSS 语法</td>
+<td>极简语法（符号可选）</td>
+</tr>
+<tr>
+<td><strong>运行环境</strong></td>
+<td>Ruby (或 LibSass 的 C 版本)</td>
+<td>JavaScript (Node.js)</td>
+<td>JavaScript (Node.js)</td>
+</tr>
+<tr>
+<td><strong>变量声明</strong></td>
+<td><code>$var: value;</code></td>
+<td><code>@var: value;</code></td>
+<td><code>var = value</code> 或 <code>var: value</code></td>
+</tr>
+<tr>
+<td><strong>嵌套规则</strong></td>
+<td>支持完整嵌套</td>
+<td>支持完整嵌套</td>
+<td>支持（缩进敏感）</td>
+</tr>
+<tr>
+<td><strong>Mixin</strong></td>
+<td><code>@mixin</code>定义 &#x2F; <code>@include</code>调用</td>
+<td>类式混合（直接调用）</td>
+<td>函数式定义</td>
+</tr>
+<tr>
+<td><strong>继承</strong></td>
+<td><code>@extend</code></td>
+<td>无（通过 Mixins 模拟）</td>
+<td><code>@extend</code></td>
+</tr>
+<tr>
+<td><strong>运算能力</strong></td>
+<td>支持复杂数学运算</td>
+<td>基础运算</td>
+<td>支持运算和内置函数</td>
+</tr>
+<tr>
+<td><strong>条件语句</strong></td>
+<td><code>@if/@else</code></td>
+<td>有限支持（通过 when）</td>
+<td>完整 if&#x2F;else 支持</td>
+</tr>
+<tr>
+<td><strong>循环语句</strong></td>
+<td><code>@for/@each/@while</code></td>
+<td>有限循环</td>
+<td>完整循环支持</td>
+</tr>
+<tr>
+<td><strong>模块化</strong></td>
+<td><code>@use</code>&#x2F;<code>@forward</code> (新版)</td>
+<td><code>@import</code></td>
+<td><code>@import</code></td>
+</tr>
+<tr>
+<td><strong>错误处理</strong></td>
+<td>详细错误报告</td>
+<td>基础错误提示</td>
+<td>相对简洁的错误提示</td>
+</tr>
+<tr>
+<td><strong>编译速度</strong></td>
+<td>较快（LibSass 版本）</td>
+<td>中等</td>
+<td>最快</td>
+</tr>
+<tr>
+<td><strong>社区生态</strong></td>
+<td>最庞大（Bootstrap 早期使用）</td>
+<td>较大（Bootstrap v3 采用）</td>
+<td>较小但活跃</td>
+</tr>
+<tr>
+<td><strong>典型用户</strong></td>
+<td>GitHub, Airbnb, Shopify</td>
+<td>Bootstrap 3, 早期 React 项目</td>
+<td>Vue 生态（早期 Vue-loader 集成）</td>
+</tr>
+</tbody></table>
+<h3 id="特色功能对比"><a href="#特色功能对比" class="headerlink" title="特色功能对比"></a>特色功能对比</h3><table>
+<thead>
+<tr>
+<th>高级功能</th>
+<th>Sass</th>
+<th>Less</th>
+<th>Stylus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>颜色函数</strong></td>
+<td>提供 20+颜色操作函数</td>
+<td>基础颜色混合</td>
+<td>内置 lighten&#x2F;darken 等</td>
+</tr>
+<tr>
+<td><strong>父选择器</strong></td>
+<td><code>&amp;</code> 高度灵活</td>
+<td><code>&amp;</code> 基本功能</td>
+<td><code>&amp;</code> 支持层级引用</td>
+</tr>
+<tr>
+<td><strong>自定义函数</strong></td>
+<td><code>@function</code></td>
+<td>通过插件扩展</td>
+<td>内置函数式支持</td>
+</tr>
+<tr>
+<td><strong>CSS 兼容</strong></td>
+<td>完全兼容 CSS</td>
+<td>完全兼容 CSS</td>
+<td>需要转换语法</td>
+</tr>
+<tr>
+<td><strong>动态导入</strong></td>
+<td>支持运行时导入</td>
+<td>静态导入</td>
+<td>支持条件导入</td>
+</tr>
+<tr>
+<td><strong>源码映射</strong></td>
+<td>完整 sourcemap 支持</td>
+<td>基础支持</td>
+<td>完整支持</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>选择建议：</p>
+<ul>
+<li><strong>企业级项目</strong> → Sass（稳定性和功能完整性）</li>
+<li><strong>前端框架集成</strong> → Less（纯 JS 实现优势）</li>
+<li><strong>开发效率优先</strong> → Stylus（极简语法和快速原型）</li>
+<li><strong>已有技术栈</strong> → 优先匹配现有生态</li>
+</ul>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 

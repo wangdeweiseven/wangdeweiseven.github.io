@@ -163,6 +163,7 @@
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 如果不异步执行，以下代码会有问题：</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">MyPromise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">p.<span class="title function_">then</span>(<span class="function">(<span class="params">num</span>) =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(num));</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确输出顺序应为：1, 2, 4, 3</span></span><br><span class="line"><span class="comment">// 如果同步执行 then 回调，则会输出：1, 3, 2, 4</span></span><br></pre></td></tr></table></figure>
 
 <p>因此，虽然同步执行看起来更高效，但为了符合规范和行为一致性，必须使用异步执行。在更完整的实现中，应该使用微任务（如 queueMicrotask 或 process.nextTick）而不是 setTimeout，但这里作为简单实现已经足够。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a href="https://es6.ruanyifeng.com/#docs/promise">阮大神-ES6</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
@@ -563,6 +564,168 @@
         <tag>前端</tag>
         <tag>Web安全</tag>
         <tag>cookie的食用指南</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web安全必修课-同源策略&amp;cookie访问机制</title>
+    <url>/2022/07/09/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5&amp;cookie%E8%AE%BF%E9%97%AE%E6%9C%BA%E5%88%B6/</url>
+    <content><![CDATA[<h2 id="一、为什么要采用同源策略"><a href="#一、为什么要采用同源策略" class="headerlink" title="一、为什么要采用同源策略"></a>一、为什么要采用同源策略</h2><p><strong>浏览器同源策略(Same-Origin Policy)是浏览器最核心的安全机制之一，用于限制不同源的文档或脚本如何相互交互。</strong></p>
+<h3 id="1-同源定义："><a href="#1-同源定义：" class="headerlink" title="1. 同源定义："></a>1. 同源定义：</h3><ul>
+<li>两个 URL 的协议(protocol)、主机(host)和端口(port)完全相同才属于同源</li>
+<li>例如：</li>
+<li><a href="http://example.com/a.html">http://example.com/a.html</a> 和 <a href="http://example.com/b.html">http://example.com/b.html</a> → 同源</li>
+<li><a href="http://example.com/">http://example.com</a> 和 <a href="https://example.com/">https://example.com</a> → 不同源(协议不同)</li>
+<li><a href="http://example.com/">http://example.com</a> 和 <a href="http://sub.example.com/">http://sub.example.com</a> → 不同源(主机不同)</li>
+<li><a href="http://example.com/">http://example.com:80</a> 和 <a href="http://example.com:8080/">http://example.com:8080</a> → 不同源(端口不同)</li>
+</ul>
+<h3 id="2-限制范围："><a href="#2-限制范围：" class="headerlink" title="2. 限制范围："></a>2. 限制范围：</h3><ul>
+<li>DOM 访问：禁止跨源读取 DOM（iframe 内容、window.open 打开的窗口）</li>
+<li>数据请求：限制 XMLHttpRequest&#x2F;fetch 跨源请求</li>
+<li>Cookie&#x2F;LocalStorage：限制跨源访问</li>
+<li>Web Workers：部分限制</li>
+</ul>
+<h3 id="3-常见场景-："><a href="#3-常见场景-：" class="headerlink" title="3.常见场景 ："></a>3.常见场景 ：</h3><ul>
+<li><p>你提到的 localhost:3000 和 localhost:5000 ：</p>
+<ul>
+<li>虽然都是 localhost，但端口不同 → 不同源 ，默认不共享 cookie</li>
+</ul>
+</li>
+<li><p>子域名之间：</p>
+<ul>
+<li>a.example.com 和 b.example.com → 不同源</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-解决方案："><a href="#4-解决方案：" class="headerlink" title="4. 解决方案："></a>4. 解决方案：</h3><ul>
+<li><p>CORS(跨源资源共享)：服务器设置 Access-Control-Allow-Origin 响应头</p>
+</li>
+<li><p>postMessage：跨文档通信 API</p>
+</li>
+<li><p>代理服务器：同源服务器转发请求</p>
+</li>
+<li><p>修改 document.domain(仅限子域名间)</p>
+</li>
+<li><p>对于 cookie：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置domain为父域名可使子域名共享cookie</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=value; domain=.example.com; path=/&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="5-特殊说明-："><a href="#5-特殊说明-：" class="headerlink" title="5. 特殊说明 ："></a>5. 特殊说明 ：</h3><ul>
+<li>某些操作不受同源策略限制：<ul>
+<li>跨源资源嵌入： <code>&lt;img&gt; , &lt;script&gt; , &lt;link&gt; , &lt;iframe&gt;</code>s 等标签</li>
+<li>跨源写操作：表单提交、重定向</li>
+</ul>
+</li>
+</ul>
+<p><strong>同源策略是保护用户隐私和数据安全的重要机制，理解它对 Web 开发至关重要。</strong></p>
+<hr>
+<h2 id="二、cookie-访问机制"><a href="#二、cookie-访问机制" class="headerlink" title="二、cookie 访问机制"></a>二、cookie 访问机制</h2><p><strong>Cookie 的访问机制涉及多个方面，以下是关键机制说明：</strong></p>
+<ol>
+<li><p>存储机制 ：</p>
+<ul>
+<li>浏览器收到服务器响应头中的 Set-Cookie 时会存储 cookie</li>
+<li>存储位置：浏览器分配的专门 cookie 存储区域</li>
+<li>存储格式：键值对，附带属性（如 Domain、Path 等）</li>
+</ul>
+</li>
+<li><p>发送机制 ：</p>
+<ul>
+<li>符合以下条件时浏览器会自动在请求头中携带 cookie：<figure class="highlight http"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>name=value; name2=value2</span><br></pre></td></tr></table></figure></li>
+<li>匹配规则：<ul>
+<li>Domain 匹配：cookie 的 domain 必须是当前域或其父域</li>
+<li>Path 匹配：cookie 的 path 必须是请求路径的前缀</li>
+<li>安全要求：Secure cookie 仅通过 HTTPS 发送</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>访问控制 ：</p>
+<ul>
+<li><p>前端访问：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 读取所有可访问cookie（不含HttpOnly）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span>; <span class="comment">// 返回&quot;name=value; name2=value2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 写入cookie（不能设置HttpOnly/Secure）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=new_value; path=/; max-age=3600&quot;</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>服务端访问：通过请求头直接读取完整 cookie</p>
+</li>
+</ul>
+</li>
+<li><p>安全限制 ：</p>
+<ul>
+<li>HttpOnly：禁止 JavaScript 访问（防 XSS）</li>
+<li>Secure：仅限 HTTPS 传输</li>
+<li>SameSite：<ul>
+<li>Strict：完全禁止跨站发送</li>
+<li>Lax：允许安全方法(GET)的跨站发送</li>
+<li>None：允许跨站发送（需配合 Secure）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>跨域规则 ：</p>
+<ul>
+<li>默认情况下，不同协议&#x2F;端口&#x2F;域名的 cookie 隔离</li>
+<li>例外情况：<ul>
+<li>显式设置 Domain 为父域： .example.com 可被子域共享</li>
+<li>现代浏览器默认不隔离端口（如 localhost:3000 和 localhost:5000）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>自动管理 ：</p>
+<ul>
+<li>过期自动删除（Expires&#x2F;Max-Age）</li>
+<li>超出数量&#x2F;大小时按 LRU 策略清理</li>
+<li>会话 cookie 在关闭浏览器时清除</li>
+</ul>
+</li>
+</ol>
+<p>补充说明：<strong>你代码注释中提到的 Secure 和 HttpOnly 属性确实是控制 cookie 访问权限的关键安全机制。</strong></p>
+<hr>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><p>详细解释 Cookie 的隔离机制和例外情况：</p>
+<ol>
+<li><p>默认隔离规则 ：</p>
+<ul>
+<li>协议隔离： http:&#x2F;&#x2F; 和 https:&#x2F;&#x2F; 的 cookie 默认隔离</li>
+<li>端口隔离：理论上不同端口 cookie 应隔离，但浏览器实现有差异</li>
+<li>域名隔离： a.com 和 b.com 完全隔离， sub.a.com 和 a.com 也默认隔离</li>
+</ul>
+</li>
+<li><p>端口隔离的特殊性 ：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// localhost:3000 和 localhost:5000 的cookie共享情况：</span></span><br><span class="line"><span class="comment">// 1. 规范要求隔离，但现代浏览器(Chrome/Firefox)默认不隔离</span></span><br><span class="line"><span class="comment">// 2. 可通过显式设置端口强制隔离：</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;name=value; port=3000&quot;</span>; <span class="comment">// 非标准属性，部分浏览器支持</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Domain 属性的作用 ：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置父域cookie（可被子域共享）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;cross_sub=val; domain=.example.com; path=/&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子域能读取父域cookie，反之不行</span></span><br><span class="line"><span class="comment">// a.example.com 可读取 .example.com 的cookie</span></span><br><span class="line"><span class="comment">// example.com 不能读取 a.example.com 的cookie</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>协议隔离的例外 ：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 当设置Secure属性时，cookie会被https协议独占</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;secure_cookie=val; Secure&quot;</span>; <span class="comment">// 仅HTTPS可用</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 没有Secure属性的https cookie可能会被http访问（不安全）</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现代浏览器行为 ：</p>
+<ul>
+<li><p>Chrome&#x2F;Firefox：默认允许同域名不同端口共享 cookie</p>
+</li>
+<li><p>Safari：较严格，部分版本会隔离端口</p>
+</li>
+<li><p>可通过 SameSite 属性进一步控制：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 完全禁止跨站发送（包括子域）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;strict_cookie=val; SameSite=Strict&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 允许安全跨站（GET请求）</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;lax_cookie=val; SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>实际开发建议 ：</p>
+<ul>
+<li>明确设置 Domain 属性避免歧义</li>
+<li>重要 cookie 始终添加 Secure 和 HttpOnly</li>
+<li>跨域场景使用 SameSite+Lax 平衡安全与功能</li>
+<li>测试不同浏览器的 cookie 行为差异</li>
+</ul>
+</li>
+</ol>
+<p><strong>特别注意：虽然现代浏览器默认不隔离端口，但这是非标准行为，不应依赖此特性实现核心功能。</strong></p>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Web安全</tag>
+        <tag>同源策略</tag>
       </tags>
   </entry>
   <entry>
@@ -1183,131 +1346,6 @@
       </tags>
   </entry>
   <entry>
-    <title>React项目中Markdown集成完整指南</title>
-    <url>/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/</url>
-    <content><![CDATA[<h2 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a>推荐方案</h2><blockquote>
-<p>如果你需要完整的 Markdown 渲染功能，推荐使用 react-markdown + remark-gfm + react-syntax-highlighter 组合。如果需要编辑器功能，可以使用 react-md-editor 。</p>
-</blockquote>
-<h3 id="1-react-markdown"><a href="#1-react-markdown" class="headerlink" title="1. react-markdown"></a>1. react-markdown</h3><blockquote>
-<p>功能: 将 Markdown 转换为 React 组件</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-markdown</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-remark-gfm"><a href="#2-remark-gfm" class="headerlink" title="2. remark-gfm"></a>2. remark-gfm</h3><blockquote>
-<p>功能 : 支持 GitHub Flavored Markdown（GFM）语法</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install remark-gfm</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&quot;remark-gfm&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span> <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-react-syntax-highlighter"><a href="#3-react-syntax-highlighter" class="headerlink" title="3. react-syntax-highlighter"></a>3. react-syntax-highlighter</h3><blockquote>
-<p>功能 : 高亮代码块</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-syntax-highlighter</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Prism</span> <span class="keyword">as</span> <span class="title class_">SyntaxHighlighter</span> &#125; <span class="keyword">from</span> <span class="string">&quot;react-syntax-highlighter&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; dracula &#125; <span class="keyword">from</span> <span class="string">&quot;react-syntax-highlighter/dist/esm/styles/prism&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">components</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">code</span>(&#123; <span class="attr">node</span>, <span class="attr">inline</span>, <span class="attr">className</span>, <span class="attr">children</span>, <span class="attr">...props</span> &#125;) &#123;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">const</span> <span class="attr">match</span> = <span class="string">/language-(\w+)/.exec(className</span> || &quot;&quot;);</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">return</span> !<span class="attr">inline</span> &amp;&amp; <span class="attr">match</span> ? (</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &lt;<span class="attr">SyntaxHighlighter</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">style</span>=<span class="string">&#123;dracula&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">language</span>=<span class="string">&#123;match[1]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">PreTag</span>=<span class="string">&quot;div&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &gt;</span></span></span><br><span class="line"><span class="language-xml">              &#123;String(children).replace(/\n$/, &quot;&quot;)&#125;</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">SyntaxHighlighter</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          ) : (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">code</span> <span class="attr">className</span>=<span class="string">&#123;className&#125;</span> &#123;<span class="attr">...props</span>&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">              &#123;children&#125;</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">code</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          );</span></span><br><span class="line"><span class="language-xml">        &#125;,</span></span><br><span class="line"><span class="language-xml">      &#125;&#125;</span></span><br><span class="line"><span class="language-xml">    &gt;</span></span><br><span class="line"><span class="language-xml">      &#123;markdown&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-markdown-to-jsx"><a href="#4-markdown-to-jsx" class="headerlink" title="4. markdown-to-jsx"></a>4. markdown-to-jsx</h3><blockquote>
-<p>功能 : 可以将 Markdown 转换为 JSX 组件,轻量级 Markdown 渲染器</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install markdown-to-jsx</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Markdown</span> <span class="keyword">from</span> <span class="string">&quot;markdown-to-jsx&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Markdown</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">Markdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="5-react-md-editor"><a href="#5-react-md-editor" class="headerlink" title="5. react-md-editor"></a>5. react-md-editor</h3><blockquote>
-<p>功能 : Markdown 编辑器</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install @uiw/react-md-editor</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; useState &#125; <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">MDEditor</span> <span class="keyword">from</span> <span class="string">&quot;@uiw/react-md-editor&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownEditor</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [value, setValue] = <span class="title function_">useState</span>(<span class="string">&quot;**Hello world!!!**&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">MDEditor</span> <span class="attr">value</span>=<span class="string">&#123;value&#125;</span> <span class="attr">onChange</span>=<span class="string">&#123;setValue&#125;</span> /&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownEditor</span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="配置-Markdown-解析"><a href="#配置-Markdown-解析" class="headerlink" title="配置 Markdown 解析"></a>配置 Markdown 解析</h2><ol>
-<li>安装依赖包：</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-markdown remark-gfm rehype-highlight</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>创建 Markdown 解析组件：</li>
-</ol>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/components/MarkdownRenderer.jsx</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&quot;remark-gfm&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> rehypeHighlight <span class="keyword">from</span> <span class="string">&quot;rehype-highlight&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; content &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span> <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span> <span class="attr">rehypePlugins</span>=<span class="string">&#123;[rehypeHighlight]&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    &#123;content&#125;</span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<h2 id="自动生成目录"><a href="#自动生成目录" class="headerlink" title="自动生成目录"></a>自动生成目录</h2><blockquote>
-<p>侧边导航栏</p>
-</blockquote>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在MarkdownRenderer组件中添加：</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">generateTOC</span> = (<span class="params">content</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> headings = content.<span class="title function_">match</span>(<span class="regexp">/^##+ .+/gm</span>) || [];</span><br><span class="line">  <span class="keyword">return</span> headings.<span class="title function_">map</span>(<span class="function">(<span class="params">heading</span>) =&gt;</span> (&#123;</span><br><span class="line">    <span class="attr">level</span>: heading.<span class="title function_">match</span>(<span class="regexp">/##+/</span>)[<span class="number">0</span>].<span class="property">length</span>,</span><br><span class="line">    <span class="attr">title</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&quot;&quot;</span>),</span><br><span class="line">  &#125;));</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用示例：</span></span><br><span class="line"><span class="keyword">const</span> &#123; content &#125; = props;</span><br><span class="line"><span class="keyword">const</span> toc = <span class="title function_">generateTOC</span>(content);</span><br></pre></td></tr></table></figure>
-
-<h2 id="样式优化"><a href="#样式优化" class="headerlink" title="样式优化"></a>样式优化</h2><figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/styles/markdown.scss</span></span><br><span class="line"><span class="selector-class">.markdown-body</span> &#123;</span><br><span class="line">  <span class="selector-tag">h2</span> &#123;</span><br><span class="line">    <span class="attribute">border-bottom</span>: <span class="number">1px</span> solid <span class="number">#eee</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  pre &#123;</span><br><span class="line">    <span class="attribute">padding</span>: <span class="number">1rem</span>;</span><br><span class="line">    <span class="attribute">border-radius</span>: <span class="number">4px</span>;</span><br><span class="line">    <span class="attribute">background</span>: <span class="number">#f6f8fa</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="完整实现示例"><a href="#完整实现示例" class="headerlink" title="完整实现示例"></a>完整实现示例</h2><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 页面组件使用示例：</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; useState, useEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&#x27;react-markdown&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&#x27;remark-gfm&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> rehypeHighlight <span class="keyword">from</span> <span class="string">&#x27;rehype-highlight&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 提取table组件,避免React 在每次渲染时都看到一个新组件类型，从而销毁整个子树的 DOM 节点和状态</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderTableCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">overflowX:</span> &#x27;<span class="attr">auto</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">table</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">borderCollapse:</span> &#x27;<span class="attr">collapse</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">width:</span> &#x27;<span class="attr">100</span>%&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">margin:</span> &#x27;<span class="attr">16px</span> <span class="attr">0</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    /&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderThCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">th</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">border:</span> &#x27;<span class="attr">1px</span> <span class="attr">solid</span> #<span class="attr">ddd</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">padding:</span> &#x27;<span class="attr">8px</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">backgroundColor:</span> &#x27;#<span class="attr">f5f5f5</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">  /&gt;</span></span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderTdCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">td</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">border:</span> &#x27;<span class="attr">1px</span> <span class="attr">solid</span> #<span class="attr">ddd</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">padding:</span> &#x27;<span class="attr">8px</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">  /&gt;</span></span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成目录的函数</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">generateTOC</span> = (<span class="params">content</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 使用正则表达式匹配所有以 ## 开头的标题行</span></span><br><span class="line">  <span class="comment">// ^##+ 表示匹配以两个或更多 # 开头的行</span></span><br><span class="line">  <span class="comment">// .+ 表示匹配标题内容</span></span><br><span class="line">  <span class="comment">// gm 表示全局匹配和多行匹配</span></span><br><span class="line">  <span class="keyword">const</span> headings = content.<span class="title function_">match</span>(<span class="regexp">/^##+ .+/gm</span>) || [];</span><br><span class="line">  <span class="comment">// 将匹配到的标题行转换为目录项</span></span><br><span class="line">  <span class="keyword">return</span> headings.<span class="title function_">map</span>(<span class="function">(<span class="params">heading</span>) =&gt;</span> (&#123;</span><br><span class="line">    <span class="comment">// 获取标题的层级（通过计算 # 的数量）</span></span><br><span class="line">    <span class="attr">level</span>: heading.<span class="title function_">match</span>(<span class="regexp">/##+/</span>)[<span class="number">0</span>].<span class="property">length</span>,</span><br><span class="line">    <span class="comment">// 去除标题前的 # 和空格，获取纯文本标题</span></span><br><span class="line">    <span class="attr">title</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&#x27;&#x27;</span>),</span><br><span class="line">    <span class="attr">id</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&#x27;&#x27;</span>).<span class="title function_">toLowerCase</span>().<span class="title function_">replace</span>(<span class="regexp">/\s+/g</span>, <span class="string">&#x27;-&#x27;</span>), <span class="comment">// 生成锚点 ID</span></span><br><span class="line">  &#125;));</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// eslint-disable-next-line react/prop-types</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownWithTOC</span> = (<span class="params">&#123; content &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [toc, setToc] = <span class="title function_">useState</span>([]);</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">setToc</span>(<span class="title function_">generateTOC</span>(content));</span><br><span class="line">  &#125;, [content]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">display:</span> &#x27;<span class="attr">flex</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;/* 目录侧边栏 */&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">aside</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">width:</span> &#x27;<span class="attr">200px</span>&#x27;, <span class="attr">marginRight:</span> &#x27;<span class="attr">20px</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">h3</span>&gt;</span>目录<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          &#123;toc.map((item, index) =&gt; (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">li</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">key</span>=<span class="string">&#123;item.id</span> || <span class="attr">index</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">marginLeft:</span> `$&#123;(<span class="attr">item.level</span> <span class="attr">-</span> <span class="attr">2</span>) * <span class="attr">15</span>&#125;<span class="attr">px</span>` &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &gt;</span></span></span><br><span class="line"><span class="language-xml">              <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&#123;</span>`#$&#123;<span class="attr">item.id</span>&#125;`&#125;&gt;</span>&#123;item.title&#125;<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          ))&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">aside</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      &#123;/* Markdown 内容 */&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">article</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">flex:</span> &#x27;<span class="attr">auto</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">ReactMarkdown</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">rehypePlugins</span>=<span class="string">&#123;[rehypeHighlight]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">components</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">table:</span> <span class="attr">renderTableCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">th:</span> <span class="attr">renderThCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">td:</span> <span class="attr">renderTdCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        &gt;</span></span></span><br><span class="line"><span class="language-xml">          &#123;content&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">article</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownWithTOC</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h2 id="vite-项目加载-md-文件的两种方式"><a href="#vite-项目加载-md-文件的两种方式" class="headerlink" title="vite 项目加载 md 文件的两种方式"></a>vite 项目加载 md 文件的两种方式</h2><h3 id="1-使用-import-引用-推荐，性能好"><a href="#1-使用-import-引用-推荐，性能好" class="headerlink" title="1. 使用 import 引用 (推荐，性能好)"></a>1. 使用 import 引用 (推荐，性能好)</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> markdownContent <span class="keyword">from</span> <span class="string">&quot;@/assets/interview-notes.md?raw&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>@&#x2F;assets&#x2F;interview-notes.md ：</li>
-</ol>
-<ul>
-<li>@ 是 Vite 中配置的路径别名，通常指向 src 目录</li>
-<li>表示从 src&#x2F;assets 目录下导入 interview-notes.md 文件</li>
-</ul>
-<ol start="2">
-<li>?raw 后缀 ：</li>
-</ol>
-<ul>
-<li>这是 Vite 的特殊查询参数</li>
-<li>表示以原始字符串的形式导入文件内容，而不是作为模块处理</li>
-<li>适合用于导入纯文本文件，如 Markdown、JSON 等</li>
-</ul>
-<ol start="3">
-<li>markdownContent ：</li>
-</ol>
-<ul>
-<li>导入的内容会被赋值给 markdownContent 变量</li>
-<li>变量类型是字符串，包含 Markdown 文件的完整内容</li>
-</ul>
-<p>这种导入方式的特点：</p>
-<ul>
-<li><p>文件内容会在构建时被处理</p>
-</li>
-<li><p>支持热更新（HMR），修改文件后页面会自动刷新</p>
-</li>
-<li><p>相比 fetch 请求，性能更好，因为文件内容会被打包进 JavaScript 文件中<br>注意：需要确保 vite.config.js 中配置了正确的路径别名和 Markdown 文件处理：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">resolve</span>: &#123;</span><br><span class="line">    <span class="attr">alias</span>: &#123;</span><br><span class="line">      <span class="string">&quot;@&quot;</span>: <span class="string">&quot;/src&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">assetsInclude</span>: [<span class="string">&quot;**/*.md&quot;</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-使用-fetch-请求"><a href="#2-使用-fetch-请求" class="headerlink" title="2. 使用 fetch 请求"></a>2. 使用 fetch 请求</h3></li>
-</ul>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [markdownContent, setMarkdownContent] = <span class="title function_">useState</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> [isLoading, setLoading] = <span class="title function_">useState</span>(<span class="literal">false</span>);</span><br><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">fetch</span>(</span><br><span class="line">    <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">PROD</span></span><br><span class="line">      ? <span class="string">`<span class="subst">$&#123;<span class="keyword">import</span>.meta.env.BASE_URL&#125;</span>/interview-notes.md`</span></span><br><span class="line">      : <span class="string">&quot;/interview-notes.md&quot;</span></span><br><span class="line">  )</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> response.<span class="title function_">text</span>())</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">text</span>) =&gt;</span> <span class="title function_">setMarkdownContent</span>(text))</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="title function_">setLoading</span>(<span class="literal">false</span>));</span><br><span class="line">  s;</span><br><span class="line">&#125;, []);</span><br></pre></td></tr></table></figure>
-
-<p>这种导入方式的特点：</p>
-<ul>
-<li><p>文件会被作为静态文件处理，不会被打包进 JavaScript 文件中, 需要处理开发环境和生产环境的路径问题</p>
-</li>
-<li><p>适合用于导入较大的文件，如图片、视频等</p>
-</li>
-<li><p>可以动态加载 Markdown 文件，根据需要进行请求</p>
-</li>
-<li><p>注意：需要确保 vite.config.js 中配置了正确的路径别名和 Markdown 文件处理：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">resolve</span>: &#123;</span><br><span class="line">    <span class="attr">alias</span>: &#123;</span><br><span class="line">      <span class="string">&quot;@&quot;</span>: <span class="string">&quot;/src&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">assetsInclude</span>: [<span class="string">&quot;**/*.md&quot;</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h2 id="最佳实践建议"><a href="#最佳实践建议" class="headerlink" title="最佳实践建议"></a>最佳实践建议</h2><ol>
-<li>配合 SSG 方案在构建时预解析 Markdown</li>
-<li>使用自定义组件替换原生 HTML 标签</li>
-<li>添加代码复制按钮等增强功能</li>
-<li>实现目录自动滚动定位</li>
-</ol>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>React</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>React</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>事件循环机制(Event Loop)</title>
     <url>/2022/04/01/%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6-Event-Loop/</url>
     <content><![CDATA[<h2 id="一、事件循环的核心组成"><a href="#一、事件循环的核心组成" class="headerlink" title="一、事件循环的核心组成"></a>一、事件循环的核心组成</h2><h3 id="1-调用栈（Call-Stack）"><a href="#1-调用栈（Call-Stack）" class="headerlink" title="1. 调用栈（Call Stack）"></a>1. 调用栈（Call Stack）</h3><ul>
@@ -1458,6 +1496,131 @@
       <tags>
         <tag>前端</tag>
         <tag>JavaScript 基础知识</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>React项目中Markdown集成完整指南</title>
+    <url>/2023/07/01/react%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%BC%95%E5%85%A5markdown/</url>
+    <content><![CDATA[<h2 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a>推荐方案</h2><blockquote>
+<p>如果你需要完整的 Markdown 渲染功能，推荐使用 react-markdown + remark-gfm + react-syntax-highlighter 组合。如果需要编辑器功能，可以使用 react-md-editor 。</p>
+</blockquote>
+<h3 id="1-react-markdown"><a href="#1-react-markdown" class="headerlink" title="1. react-markdown"></a>1. react-markdown</h3><blockquote>
+<p>功能: 将 Markdown 转换为 React 组件</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-markdown</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-remark-gfm"><a href="#2-remark-gfm" class="headerlink" title="2. remark-gfm"></a>2. remark-gfm</h3><blockquote>
+<p>功能 : 支持 GitHub Flavored Markdown（GFM）语法</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install remark-gfm</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&quot;remark-gfm&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span> <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-react-syntax-highlighter"><a href="#3-react-syntax-highlighter" class="headerlink" title="3. react-syntax-highlighter"></a>3. react-syntax-highlighter</h3><blockquote>
+<p>功能 : 高亮代码块</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-syntax-highlighter</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Prism</span> <span class="keyword">as</span> <span class="title class_">SyntaxHighlighter</span> &#125; <span class="keyword">from</span> <span class="string">&quot;react-syntax-highlighter&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; dracula &#125; <span class="keyword">from</span> <span class="string">&quot;react-syntax-highlighter/dist/esm/styles/prism&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">components</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">code</span>(&#123; <span class="attr">node</span>, <span class="attr">inline</span>, <span class="attr">className</span>, <span class="attr">children</span>, <span class="attr">...props</span> &#125;) &#123;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">const</span> <span class="attr">match</span> = <span class="string">/language-(\w+)/.exec(className</span> || &quot;&quot;);</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">return</span> !<span class="attr">inline</span> &amp;&amp; <span class="attr">match</span> ? (</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &lt;<span class="attr">SyntaxHighlighter</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">style</span>=<span class="string">&#123;dracula&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">language</span>=<span class="string">&#123;match[1]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">PreTag</span>=<span class="string">&quot;div&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &gt;</span></span></span><br><span class="line"><span class="language-xml">              &#123;String(children).replace(/\n$/, &quot;&quot;)&#125;</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">SyntaxHighlighter</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          ) : (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">code</span> <span class="attr">className</span>=<span class="string">&#123;className&#125;</span> &#123;<span class="attr">...props</span>&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">              &#123;children&#125;</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">code</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          );</span></span><br><span class="line"><span class="language-xml">        &#125;,</span></span><br><span class="line"><span class="language-xml">      &#125;&#125;</span></span><br><span class="line"><span class="language-xml">    &gt;</span></span><br><span class="line"><span class="language-xml">      &#123;markdown&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-markdown-to-jsx"><a href="#4-markdown-to-jsx" class="headerlink" title="4. markdown-to-jsx"></a>4. markdown-to-jsx</h3><blockquote>
+<p>功能 : 可以将 Markdown 转换为 JSX 组件,轻量级 Markdown 渲染器</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install markdown-to-jsx</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span> <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Markdown</span> <span class="keyword">from</span> <span class="string">&quot;markdown-to-jsx&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; markdown &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Markdown</span>&gt;</span>&#123;markdown&#125;<span class="tag">&lt;/<span class="name">Markdown</span>&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownRenderer</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-react-md-editor"><a href="#5-react-md-editor" class="headerlink" title="5. react-md-editor"></a>5. react-md-editor</h3><blockquote>
+<p>功能 : Markdown 编辑器</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install @uiw/react-md-editor</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; useState &#125; <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">MDEditor</span> <span class="keyword">from</span> <span class="string">&quot;@uiw/react-md-editor&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownEditor</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [value, setValue] = <span class="title function_">useState</span>(<span class="string">&quot;**Hello world!!!**&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">MDEditor</span> <span class="attr">value</span>=<span class="string">&#123;value&#125;</span> <span class="attr">onChange</span>=<span class="string">&#123;setValue&#125;</span> /&gt;</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownEditor</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-Markdown-解析"><a href="#配置-Markdown-解析" class="headerlink" title="配置 Markdown 解析"></a>配置 Markdown 解析</h2><ol>
+<li>安装依赖包：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install react-markdown remark-gfm rehype-highlight</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>创建 Markdown 解析组件：</li>
+</ol>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/components/MarkdownRenderer.jsx</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&quot;react-markdown&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&quot;remark-gfm&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> rehypeHighlight <span class="keyword">from</span> <span class="string">&quot;rehype-highlight&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownRenderer</span> = (<span class="params">&#123; content &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">ReactMarkdown</span> <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span> <span class="attr">rehypePlugins</span>=<span class="string">&#123;[rehypeHighlight]&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    &#123;content&#125;</span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h2 id="自动生成目录"><a href="#自动生成目录" class="headerlink" title="自动生成目录"></a>自动生成目录</h2><blockquote>
+<p>侧边导航栏</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在MarkdownRenderer组件中添加：</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">generateTOC</span> = (<span class="params">content</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> headings = content.<span class="title function_">match</span>(<span class="regexp">/^##+ .+/gm</span>) || [];</span><br><span class="line">  <span class="keyword">return</span> headings.<span class="title function_">map</span>(<span class="function">(<span class="params">heading</span>) =&gt;</span> (&#123;</span><br><span class="line">    <span class="attr">level</span>: heading.<span class="title function_">match</span>(<span class="regexp">/##+/</span>)[<span class="number">0</span>].<span class="property">length</span>,</span><br><span class="line">    <span class="attr">title</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&quot;&quot;</span>),</span><br><span class="line">  &#125;));</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用示例：</span></span><br><span class="line"><span class="keyword">const</span> &#123; content &#125; = props;</span><br><span class="line"><span class="keyword">const</span> toc = <span class="title function_">generateTOC</span>(content);</span><br></pre></td></tr></table></figure>
+
+<h2 id="样式优化"><a href="#样式优化" class="headerlink" title="样式优化"></a>样式优化</h2><figure class="highlight scss"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/styles/markdown.scss</span></span><br><span class="line"><span class="selector-class">.markdown-body</span> &#123;</span><br><span class="line">  <span class="selector-tag">h2</span> &#123;</span><br><span class="line">    <span class="attribute">border-bottom</span>: <span class="number">1px</span> solid <span class="number">#eee</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  pre &#123;</span><br><span class="line">    <span class="attribute">padding</span>: <span class="number">1rem</span>;</span><br><span class="line">    <span class="attribute">border-radius</span>: <span class="number">4px</span>;</span><br><span class="line">    <span class="attribute">background</span>: <span class="number">#f6f8fa</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="完整实现示例"><a href="#完整实现示例" class="headerlink" title="完整实现示例"></a>完整实现示例</h2><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 页面组件使用示例：</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; useState, useEffect &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactMarkdown</span> <span class="keyword">from</span> <span class="string">&#x27;react-markdown&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> remarkGfm <span class="keyword">from</span> <span class="string">&#x27;remark-gfm&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> rehypeHighlight <span class="keyword">from</span> <span class="string">&#x27;rehype-highlight&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 提取table组件,避免React 在每次渲染时都看到一个新组件类型，从而销毁整个子树的 DOM 节点和状态</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderTableCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">overflowX:</span> &#x27;<span class="attr">auto</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">table</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">borderCollapse:</span> &#x27;<span class="attr">collapse</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">width:</span> &#x27;<span class="attr">100</span>%&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">margin:</span> &#x27;<span class="attr">16px</span> <span class="attr">0</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    /&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderThCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">th</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">border:</span> &#x27;<span class="attr">1px</span> <span class="attr">solid</span> #<span class="attr">ddd</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">padding:</span> &#x27;<span class="attr">8px</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">backgroundColor:</span> &#x27;#<span class="attr">f5f5f5</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">  /&gt;</span></span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">renderTdCom</span> = (<span class="params">&#123; node, ...props &#125;</span>) =&gt; (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">td</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    <span class="attr">style</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">border:</span> &#x27;<span class="attr">1px</span> <span class="attr">solid</span> #<span class="attr">ddd</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">      <span class="attr">padding:</span> &#x27;<span class="attr">8px</span>&#x27;,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">    &#123;<span class="attr">...props</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">  /&gt;</span></span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成目录的函数</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">generateTOC</span> = (<span class="params">content</span>) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 使用正则表达式匹配所有以 ## 开头的标题行</span></span><br><span class="line">  <span class="comment">// ^##+ 表示匹配以两个或更多 # 开头的行</span></span><br><span class="line">  <span class="comment">// .+ 表示匹配标题内容</span></span><br><span class="line">  <span class="comment">// gm 表示全局匹配和多行匹配</span></span><br><span class="line">  <span class="keyword">const</span> headings = content.<span class="title function_">match</span>(<span class="regexp">/^##+ .+/gm</span>) || [];</span><br><span class="line">  <span class="comment">// 将匹配到的标题行转换为目录项</span></span><br><span class="line">  <span class="keyword">return</span> headings.<span class="title function_">map</span>(<span class="function">(<span class="params">heading</span>) =&gt;</span> (&#123;</span><br><span class="line">    <span class="comment">// 获取标题的层级（通过计算 # 的数量）</span></span><br><span class="line">    <span class="attr">level</span>: heading.<span class="title function_">match</span>(<span class="regexp">/##+/</span>)[<span class="number">0</span>].<span class="property">length</span>,</span><br><span class="line">    <span class="comment">// 去除标题前的 # 和空格，获取纯文本标题</span></span><br><span class="line">    <span class="attr">title</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&#x27;&#x27;</span>),</span><br><span class="line">    <span class="attr">id</span>: heading.<span class="title function_">replace</span>(<span class="regexp">/##+ /</span>, <span class="string">&#x27;&#x27;</span>).<span class="title function_">toLowerCase</span>().<span class="title function_">replace</span>(<span class="regexp">/\s+/g</span>, <span class="string">&#x27;-&#x27;</span>), <span class="comment">// 生成锚点 ID</span></span><br><span class="line">  &#125;));</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// eslint-disable-next-line react/prop-types</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">MarkdownWithTOC</span> = (<span class="params">&#123; content &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [toc, setToc] = <span class="title function_">useState</span>([]);</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">setToc</span>(<span class="title function_">generateTOC</span>(content));</span><br><span class="line">  &#125;, [content]);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">display:</span> &#x27;<span class="attr">flex</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;/* 目录侧边栏 */&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">aside</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">width:</span> &#x27;<span class="attr">200px</span>&#x27;, <span class="attr">marginRight:</span> &#x27;<span class="attr">20px</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">h3</span>&gt;</span>目录<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          &#123;toc.map((item, index) =&gt; (</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">li</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">key</span>=<span class="string">&#123;item.id</span> || <span class="attr">index</span>&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">              <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">marginLeft:</span> `$&#123;(<span class="attr">item.level</span> <span class="attr">-</span> <span class="attr">2</span>) * <span class="attr">15</span>&#125;<span class="attr">px</span>` &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            &gt;</span></span></span><br><span class="line"><span class="language-xml">              <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&#123;</span>`#$&#123;<span class="attr">item.id</span>&#125;`&#125;&gt;</span>&#123;item.title&#125;<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          ))&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">aside</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      &#123;/* Markdown 内容 */&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">article</span> <span class="attr">style</span>=<span class="string">&#123;&#123;</span> <span class="attr">flex:</span> &#x27;<span class="attr">auto</span>&#x27; &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">ReactMarkdown</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">remarkPlugins</span>=<span class="string">&#123;[remarkGfm]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">rehypePlugins</span>=<span class="string">&#123;[rehypeHighlight]&#125;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          <span class="attr">components</span>=<span class="string">&#123;&#123;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">table:</span> <span class="attr">renderTableCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">th:</span> <span class="attr">renderThCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">            <span class="attr">td:</span> <span class="attr">renderTdCom</span>,</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">          &#125;&#125;</span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        &gt;</span></span></span><br><span class="line"><span class="language-xml">          &#123;content&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">ReactMarkdown</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">article</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">MarkdownWithTOC</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="vite-项目加载-md-文件的两种方式"><a href="#vite-项目加载-md-文件的两种方式" class="headerlink" title="vite 项目加载 md 文件的两种方式"></a>vite 项目加载 md 文件的两种方式</h2><h3 id="1-使用-import-引用-推荐，性能好"><a href="#1-使用-import-引用-推荐，性能好" class="headerlink" title="1. 使用 import 引用 (推荐，性能好)"></a>1. 使用 import 引用 (推荐，性能好)</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> markdownContent <span class="keyword">from</span> <span class="string">&quot;@/assets/interview-notes.md?raw&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>@&#x2F;assets&#x2F;interview-notes.md ：</li>
+</ol>
+<ul>
+<li>@ 是 Vite 中配置的路径别名，通常指向 src 目录</li>
+<li>表示从 src&#x2F;assets 目录下导入 interview-notes.md 文件</li>
+</ul>
+<ol start="2">
+<li>?raw 后缀 ：</li>
+</ol>
+<ul>
+<li>这是 Vite 的特殊查询参数</li>
+<li>表示以原始字符串的形式导入文件内容，而不是作为模块处理</li>
+<li>适合用于导入纯文本文件，如 Markdown、JSON 等</li>
+</ul>
+<ol start="3">
+<li>markdownContent ：</li>
+</ol>
+<ul>
+<li>导入的内容会被赋值给 markdownContent 变量</li>
+<li>变量类型是字符串，包含 Markdown 文件的完整内容</li>
+</ul>
+<p>这种导入方式的特点：</p>
+<ul>
+<li><p>文件内容会在构建时被处理</p>
+</li>
+<li><p>支持热更新（HMR），修改文件后页面会自动刷新</p>
+</li>
+<li><p>相比 fetch 请求，性能更好，因为文件内容会被打包进 JavaScript 文件中<br>注意：需要确保 vite.config.js 中配置了正确的路径别名和 Markdown 文件处理：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">resolve</span>: &#123;</span><br><span class="line">    <span class="attr">alias</span>: &#123;</span><br><span class="line">      <span class="string">&quot;@&quot;</span>: <span class="string">&quot;/src&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">assetsInclude</span>: [<span class="string">&quot;**/*.md&quot;</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-使用-fetch-请求"><a href="#2-使用-fetch-请求" class="headerlink" title="2. 使用 fetch 请求"></a>2. 使用 fetch 请求</h3></li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [markdownContent, setMarkdownContent] = <span class="title function_">useState</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> [isLoading, setLoading] = <span class="title function_">useState</span>(<span class="literal">false</span>);</span><br><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">fetch</span>(</span><br><span class="line">    <span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">env</span>.<span class="property">PROD</span></span><br><span class="line">      ? <span class="string">`<span class="subst">$&#123;<span class="keyword">import</span>.meta.env.BASE_URL&#125;</span>/interview-notes.md`</span></span><br><span class="line">      : <span class="string">&quot;/interview-notes.md&quot;</span></span><br><span class="line">  )</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> response.<span class="title function_">text</span>())</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">(<span class="params">text</span>) =&gt;</span> <span class="title function_">setMarkdownContent</span>(text))</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="title function_">setLoading</span>(<span class="literal">false</span>));</span><br><span class="line">  s;</span><br><span class="line">&#125;, []);</span><br></pre></td></tr></table></figure>
+
+<p>这种导入方式的特点：</p>
+<ul>
+<li><p>文件会被作为静态文件处理，不会被打包进 JavaScript 文件中, 需要处理开发环境和生产环境的路径问题</p>
+</li>
+<li><p>适合用于导入较大的文件，如图片、视频等</p>
+</li>
+<li><p>可以动态加载 Markdown 文件，根据需要进行请求</p>
+</li>
+<li><p>注意：需要确保 vite.config.js 中配置了正确的路径别名和 Markdown 文件处理：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">resolve</span>: &#123;</span><br><span class="line">    <span class="attr">alias</span>: &#123;</span><br><span class="line">      <span class="string">&quot;@&quot;</span>: <span class="string">&quot;/src&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">assetsInclude</span>: [<span class="string">&quot;**/*.md&quot;</span>],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="最佳实践建议"><a href="#最佳实践建议" class="headerlink" title="最佳实践建议"></a>最佳实践建议</h2><ol>
+<li>配合 SSG 方案在构建时预解析 Markdown</li>
+<li>使用自定义组件替换原生 HTML 标签</li>
+<li>添加代码复制按钮等增强功能</li>
+<li>实现目录自动滚动定位</li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>React</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>React</tag>
       </tags>
   </entry>
   <entry>
