@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -184,6 +184,237 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/01/%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6-Event-Loop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/04/01/%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6-Event-Loop/" class="post-title-link" itemprop="url">事件循环机制(Event Loop)</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-02 20:54:48" itemprop="dateModified" datetime="2025-04-02T20:54:48+08:00">2025-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/JavaScript-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" itemprop="url" rel="index"><span itemprop="name">JavaScript 基础知识</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、事件循环的核心组成"><a href="#一、事件循环的核心组成" class="headerlink" title="一、事件循环的核心组成"></a>一、事件循环的核心组成</h2><h3 id="1-调用栈（Call-Stack）"><a href="#1-调用栈（Call-Stack）" class="headerlink" title="1. 调用栈（Call Stack）"></a>1. 调用栈（Call Stack）</h3><ul>
+<li>用于执行<strong>同步代码</strong>，遵循后进先出（LIFO）原则</li>
+<li>函数调用被压入栈中，执行完毕后弹出</li>
+</ul>
+<h3 id="2-任务队列（Task-Queues）"><a href="#2-任务队列（Task-Queues）" class="headerlink" title="2. 任务队列（Task Queues）"></a>2. 任务队列（Task Queues）</h3><table>
+<thead>
+<tr>
+<th>队列类型</th>
+<th>包含的任务示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>宏任务队列</strong></td>
+<td><code>setTimeout</code>, <code>setInterval</code>, DOM 事件回调, I&#x2F;O 操作</td>
+</tr>
+<tr>
+<td><strong>微任务队列</strong></td>
+<td><code>Promise.then</code>, <code>MutationObserver</code>, <code>process.nextTick</code>（Node.js）</td>
+</tr>
+</tbody></table>
+<h3 id="3-事件循环工作流程"><a href="#3-事件循环工作流程" class="headerlink" title="3. 事件循环工作流程"></a>3. 事件循环工作流程</h3><ol>
+<li>执行调用栈中的同步代码</li>
+<li>调用栈清空后，检查并执行<strong>所有微任务</strong></li>
+<li>微任务队列清空后，执行<strong>一个宏任务</strong></li>
+<li>重复上述过程</li>
+</ol>
+<hr>
+<h2 id="二、执行优先级规则"><a href="#二、执行优先级规则" class="headerlink" title="二、执行优先级规则"></a>二、执行优先级规则</h2><h3 id="1-基础优先级"><a href="#1-基础优先级" class="headerlink" title="1. 基础优先级"></a>1. 基础优先级</h3><ol>
+<li><p>同步代码 &gt; 微任务 &gt; 宏任务</p>
+</li>
+<li><p>微任务优先级高于宏任务</p>
+<ul>
+<li><p>每个宏任务执行完毕后，会清空微任务队列，包括执行过程中新产生的微任务。</p>
+</li>
+<li><p>微任务队列必须完全清空后，才会执行下一个宏任务。</p>
+</li>
+</ul>
+</li>
+<li><p>同类型任务的执行顺序</p>
+<ul>
+<li><p>宏任务按入队顺序执行（如多个 setTimeout 按延迟时间到期顺序执行）。</p>
+</li>
+<li><p>微任务按入队顺序执行，且新添加的微任务会在此轮事件循环中执行。</p>
+</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="三、执行优先级规则"><a href="#三、执行优先级规则" class="headerlink" title="三、执行优先级规则"></a>三、执行优先级规则</h2><h3 id="1-示例代码分析"><a href="#1-示例代码分析" class="headerlink" title="1. 示例代码分析"></a>1. 示例代码分析</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步1&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;宏任务1&quot;</span>);</span><br><span class="line">  <span class="variable constant_">SS</span>;</span><br><span class="line">  <span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;宏任务1的微任务&quot;</span>));</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;微任务1&quot;</span>);</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;微任务1的宏任务&quot;</span>), <span class="number">0</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步2&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-执行顺序解析"><a href="#2-执行顺序解析" class="headerlink" title="2. 执行顺序解析"></a>2. 执行顺序解析</h3><ol>
+<li><p>同步代码<br>输出：同步 1 → 同步 2。</p>
+</li>
+<li><p>微任务队列处理</p>
+<ul>
+<li><p>执行 Promise.resolve().then，输出 微任务 1。</p>
+</li>
+<li><p>内部的 setTimeout 将新宏任务加入队列。</p>
+</li>
+</ul>
+</li>
+<li><p>宏任务队列处理</p>
+<ul>
+<li><p>执行第一个 setTimeout 回调，输出 宏任务 1。</p>
+</li>
+<li><p>其内部的 Promise.then 将微任务加入队列。</p>
+</li>
+<li><p>再次清空微任务队列，输出 宏任务 1 的微任务。</p>
+</li>
+</ul>
+</li>
+<li><p>处理新加入的宏任务</p>
+<ul>
+<li>执行由微任务中添加的 setTimeout，输出 微任务 1 的宏任务。</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-最终输出顺序"><a href="#3-最终输出顺序" class="headerlink" title="3. 最终输出顺序"></a>3. 最终输出顺序</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">同步1 → 同步2 → 微任务1 → 宏任务1 → 宏任务1的微任务 → 微任务1的宏任务</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、特殊场景与注意事项"><a href="#四、特殊场景与注意事项" class="headerlink" title="四、特殊场景与注意事项"></a>四、特殊场景与注意事项</h2><ol>
+<li><p>微任务递归调用</p>
+<p>若在微任务中不断添加新的微任务（如递归调用 Promise.then），会导致事件循环卡在微任务阶段，无法执行宏任务</p>
+</li>
+<li><p>浏览器与 Node.js 的差异</p>
+<ul>
+<li><p>浏览器：微任务在渲染（如重绘）前执行。</p>
+</li>
+<li><p>Node.js：process.nextTick 优先级高于 Promise.then，且事件循环分为多个阶段（如 timers、poll、check）。</p>
+</li>
+</ul>
+</li>
+<li><p>process.nextTick、Promise.then 和 setTimeout、setImmediate 的区别</p>
+</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 典型执行顺序演示</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setTimeout&quot;</span>), <span class="number">0</span>);</span><br><span class="line"><span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setImmediate&quot;</span>));</span><br><span class="line">process.<span class="title function_">nextTick</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;nextTick&quot;</span>));</span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;promise&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步代码&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 同步代码 -&gt;  nextTick -&gt; promise -&gt; setTimeout -&gt; setImmediate</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>为什么这样设计？<ul>
+<li>nextTick ：用于紧急任务（如错误处理）</li>
+<li>Promise ：标准化的异步处理</li>
+<li>setImmediate ：避免 setTimeout 的最小延迟问题</li>
+<li>setTimeout ：精确时间控制（虽然不绝对精确）</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>同步代码 &gt; nextTick &gt; Promise &gt; setTimeout &gt; setImmediate</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 需要立即执行（如初始化）</span></span><br><span class="line">process.<span class="title function_">nextTick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;初始化完成&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不紧急但需要保证顺序</span></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;数据预处理&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 需要延迟但不确定时间</span></span><br><span class="line"><span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;日志清理&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 精确延迟（如重试机制）</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求重试&quot;</span>);</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>示例</th>
+<th>执行时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同步代码</td>
+<td>console.log</td>
+<td>立即执行</td>
+</tr>
+<tr>
+<td>微任务</td>
+<td>Promise.then</td>
+<td>调用栈清空后，宏任务前执行</td>
+</tr>
+<tr>
+<td>宏任务</td>
+<td>setTimeout, I&#x2F;O</td>
+<td>每轮事件循环处理一个宏任务</td>
+</tr>
+</tbody></table>
+<h3 id="核心规则："><a href="#核心规则：" class="headerlink" title="核心规则："></a>核心规则：</h3><blockquote>
+<p>同步代码 → 微任务队列清空 → 一个宏任务 → 微任务队列清空 → 下一个宏任务…<br>理解事件循环的优先级机制，能够帮助开发者更好地控制代码执行顺序，避免异步逻辑的混乱。</p>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 

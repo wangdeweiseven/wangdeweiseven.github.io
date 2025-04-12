@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -184,6 +184,250 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/04/04/%E8%B7%A8%E6%A0%87%E7%AD%BE%E9%A1%B5%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdw">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="前端那些事">
+      <meta itemprop="description" content="欢迎来到我的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 前端那些事">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/04/04/%E8%B7%A8%E6%A0%87%E7%AD%BE%E9%A1%B5%E9%80%9A%E4%BF%A1/" class="post-title-link" itemprop="url">浏览器多页面通信方案</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2024-04-04T00:00:00+08:00">2024-04-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-11 13:27:52" itemprop="dateModified" datetime="2025-04-11T13:27:52+08:00">2025-04-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" itemprop="url" rel="index"><span itemprop="name">基础知识</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="跨标签页通信：让浏览器标签页”说悄悄话”的-5-种方法"><a href="#跨标签页通信：让浏览器标签页”说悄悄话”的-5-种方法" class="headerlink" title="跨标签页通信：让浏览器标签页”说悄悄话”的 5 种方法"></a>跨标签页通信：让浏览器标签页”说悄悄话”的 5 种方法</h2><p><strong>场景想象</strong>：<br>你打开两个淘宝标签页，在 A 页面把商品加入购物车，B 页面却像没看见似的。这种尴尬就像你在微信聊天，对方明明在线却显示”未读”一样难受。这时候就需要让标签页学会”说悄悄话”！</p>
+<h3 id="一、LocalStorage-传纸条法（最基础）"><a href="#一、LocalStorage-传纸条法（最基础）" class="headerlink" title="一、LocalStorage 传纸条法（最基础）"></a>一、LocalStorage 传纸条法（最基础）</h3><p><strong>原理</strong>：利用浏览器存储的”记事本”，一个页面写内容，其他页面监听变化。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 页面A发送消息</span></span><br><span class="line"><span class="variable language_">localStorage</span>.<span class="title function_">setItem</span>(<span class="string">&quot;chatMsg&quot;</span>, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; <span class="attr">productId</span>: <span class="number">123</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 页面B接收消息</span></span><br><span class="line"><span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&quot;storage&quot;</span>, <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (e.<span class="property">key</span> === <span class="string">&quot;chatMsg&quot;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> data = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(e.<span class="property">newValue</span>);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到新消息:&quot;</span>, data);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+<th>详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>✅ 优点</td>
+<td>简单直接</td>
+<td>纯前端实现，无需后端支持；API 简单（<code>setItem</code>&#x2F;<code>getItem</code>）</td>
+</tr>
+<tr>
+<td>✅ 优点</td>
+<td>同源共享</td>
+<td>同一域名下的所有页面&#x2F;标签页均可访问</td>
+</tr>
+<tr>
+<td>✅ 优点</td>
+<td>持久存储</td>
+<td>数据不会随浏览器关闭而清除（需手动清理）</td>
+</tr>
+<tr>
+<td>✅ 优点</td>
+<td>存储容量</td>
+<td>约 5MB（是 Cookie 约为 4kb 的 50 倍）</td>
+</tr>
+<tr>
+<td>❌ 缺点</td>
+<td>安全隐患</td>
+<td>明文存储，易受 XSS 攻击；无法原生设置过期时间（需自行实现）</td>
+</tr>
+<tr>
+<td>❌ 缺点</td>
+<td>性能问题</td>
+<td>同步操作可能阻塞主线程；频繁读写影响页面响应速度</td>
+</tr>
+<tr>
+<td>❌ 缺点</td>
+<td>数据类型限制</td>
+<td>仅支持字符串存储（需手动<code>JSON.stringify</code>）</td>
+</tr>
+<tr>
+<td>❌ 缺点</td>
+<td>并发问题</td>
+<td>多标签页同时写入可能导致数据竞争</td>
+</tr>
+</tbody></table>
+<h3 id="二、BroadcastChannel-对讲机（最优雅）"><a href="#二、BroadcastChannel-对讲机（最优雅）" class="headerlink" title="二、BroadcastChannel 对讲机（最优雅）"></a>二、BroadcastChannel 对讲机（最优雅）</h3><p><strong>原理</strong>：像创建聊天室频道，加入频道的页面都能实时对话。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cross_page_channel表示(可以自定义任何字符串)</span></span><br><span class="line"><span class="comment">// 所有使用相同频道名称的页面会自动加入同一个通信频道</span></span><br><span class="line"><span class="comment">// 不同频道名称的页面之间不会互相干扰</span></span><br><span class="line"><span class="keyword">const</span> channel = <span class="keyword">new</span> <span class="title class_">BroadcastChannel</span>(<span class="string">&quot;cross_page_channel&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发消息</span></span><br><span class="line">channel.<span class="title function_">postMessage</span>(&#123; <span class="attr">action</span>: <span class="string">&quot;add&quot;</span>, <span class="attr">item</span>: <span class="string">&quot;手机&quot;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 收消息</span></span><br><span class="line">channel.<span class="property">onmessage</span> = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;频道消息:&quot;</span>, e.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✔️ 现代浏览器支持</li>
+<li>✔️ API 简洁直观</li>
+<li>❌ IE 不支持</li>
+<li>❌ 需要同源</li>
+</ul>
+<h3 id="三、SharedWorker-接线员（最专业）"><a href="#三、SharedWorker-接线员（最专业）" class="headerlink" title="三、SharedWorker 接线员（最专业）"></a>三、SharedWorker 接线员（最专业）</h3><p><strong>原理</strong>：创建一个后台”接线员”，所有页面通过它中转消息。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// worker.js</span></span><br><span class="line"><span class="keyword">const</span> ports = [];</span><br><span class="line">onconnect = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> port = e.<span class="property">ports</span>[<span class="number">0</span>];</span><br><span class="line">  ports.<span class="title function_">push</span>(port);</span><br><span class="line"></span><br><span class="line">  port.<span class="property">onmessage</span> = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">    ports.<span class="title function_">forEach</span>(<span class="function">(<span class="params">p</span>) =&gt;</span> p.<span class="title function_">postMessage</span>(e.<span class="property">data</span>));</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 页面使用</span></span><br><span class="line"><span class="keyword">const</span> worker = <span class="keyword">new</span> <span class="title class_">SharedWorker</span>(<span class="string">&quot;worker.js&quot;</span>);</span><br><span class="line">worker.<span class="property">port</span>.<span class="property">onmessage</span> = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;来自接线员:&quot;</span>, e.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br><span class="line">worker.<span class="property">port</span>.<span class="title function_">postMessage</span>(<span class="string">&quot;新订单！&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✔️ 支持跨域</li>
+<li>✔️ 适合复杂场景</li>
+<li>❌ 实现较复杂</li>
+<li>❌ 需要处理连接状态</li>
+</ul>
+<h3 id="四、Window-open-父子对话（最直接）"><a href="#四、Window-open-父子对话（最直接）" class="headerlink" title="四、Window.open 父子对话（最直接）"></a>四、Window.open 父子对话（最直接）</h3><p><strong>原理</strong>：父子页面直接通过 window 对象喊话。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 父页面打开子页面</span></span><br><span class="line"><span class="keyword">const</span> child = <span class="variable language_">window</span>.<span class="title function_">open</span>(<span class="string">&quot;child.html&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 父页面向子页面喊话</span></span><br><span class="line">child.<span class="title function_">postMessage</span>(<span class="string">&quot;已支付成功&quot;</span>, <span class="string">&quot;https://同一域名&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子页面监听</span></span><br><span class="line"><span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&quot;message&quot;</span>, <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (e.<span class="property">origin</span> !== <span class="string">&quot;父页面域名&quot;</span>) <span class="keyword">return</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;爸爸说:&quot;</span>, e.<span class="property">data</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✔️ 精确控制通信对象</li>
+<li>✔️ 支持跨域</li>
+<li>❌ 需要维护窗口引用</li>
+<li>❌ 安全性要求高</li>
+</ul>
+<h3 id="五、Service-Worker-后台信使（最持久）"><a href="#五、Service-Worker-后台信使（最持久）" class="headerlink" title="五、Service Worker 后台信使（最持久）"></a>五、Service Worker 后台信使（最持久）</h3><p><strong>原理</strong>：利用后台线程做消息中转站。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注册Service Worker</span></span><br><span class="line">navigator.<span class="property">serviceWorker</span>.<span class="title function_">register</span>(<span class="string">&quot;sw.js&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 页面发送</span></span><br><span class="line">navigator.<span class="property">serviceWorker</span>.<span class="property">controller</span>.<span class="title function_">postMessage</span>(<span class="string">&quot;用户登录了&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Service Worker接收</span></span><br><span class="line">self.<span class="title function_">addEventListener</span>(<span class="string">&quot;message&quot;</span>, <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 广播给所有页面</span></span><br><span class="line">  self.<span class="property">clients</span>.<span class="title function_">matchAll</span>().<span class="title function_">then</span>(<span class="function">(<span class="params">clients</span>) =&gt;</span> &#123;</span><br><span class="line">    clients.<span class="title function_">forEach</span>(<span class="function">(<span class="params">client</span>) =&gt;</span> client.<span class="title function_">postMessage</span>(e.<span class="property">data</span>));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✔️ 支持离线通信</li>
+<li>✔️ 可推送通知</li>
+<li>❌ 需要 HTTPS</li>
+<li>❌ 学习曲线较高</li>
+</ul>
+<h3 id="方法对比表"><a href="#方法对比表" class="headerlink" title="方法对比表"></a>方法对比表</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>适用场景</th>
+<th>跨域支持</th>
+<th>实时性</th>
+<th>复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LocalStorage</td>
+<td>简单状态同步</td>
+<td>❌</td>
+<td>高</td>
+<td>⭐</td>
+</tr>
+<tr>
+<td>BroadcastChannel</td>
+<td>同源多页通信</td>
+<td>❌</td>
+<td>高</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>SharedWorker</td>
+<td>复杂数据交互</td>
+<td>✔️</td>
+<td>高</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Window.open</td>
+<td>父子页通信</td>
+<td>✔️</td>
+<td>高</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Service Worker</td>
+<td>离线&#x2F;后台场景</td>
+<td>✔️</td>
+<td>中</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<h3 id="安全小贴士"><a href="#安全小贴士" class="headerlink" title="安全小贴士"></a>安全小贴士</h3><ul>
+<li>使用 <code>postMessage</code> 时务必验证 <code>origin</code></li>
+<li>敏感操作建议配合服务端验证</li>
+<li>跨域通信设置白名单</li>
+</ul>
+<h3 id="选型建议"><a href="#选型建议" class="headerlink" title="选型建议"></a>选型建议</h3><ul>
+<li>购物车同步 → <code>BroadcastChannel</code></li>
+<li>多窗口协作编辑器 → <code>SharedWorker</code></li>
+<li>第三方组件通信 → <code>Window.postMessage</code></li>
+<li>离线消息通知 → <code>Service Worker</code></li>
+</ul>
+<p>当浏览器标签页学会”窃窃私语”，用户体验就像交响乐团有了指挥——每个页面都在正确的时间奏响正确的音符。选择合适的方法，让你的应用跳出”单页思维”，开启真正的多线程协作体验吧！</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -2172,237 +2416,6 @@
 <li>重复上述过程</li>
 </ol>
 <h3 id="执行顺序示例"><a href="#执行顺序示例" class="headerlink" title="执行顺序示例"></a>执行顺序示例</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script start&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setTimeout&quot;</span>);</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>()</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 1&quot;</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Promise 2&quot;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Script end&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出顺序:</span></span><br><span class="line"><span class="comment">// Script start</span></span><br><span class="line"><span class="comment">// Script end</span></span><br><span class="line"><span class="comment">// Promise 1</span></span><br><span class="line"><span class="comment">// Promise 2</span></span><br><span class="line"><span class="comment">// setTimeout</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/01/%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6-Event-Loop/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="wdw">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="前端那些事">
-      <meta itemprop="description" content="欢迎来到我的博客">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 前端那些事">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/04/01/%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6-Event-Loop/" class="post-title-link" itemprop="url">事件循环机制(Event Loop)</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2022-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-02 20:54:48" itemprop="dateModified" datetime="2025-04-02T20:54:48+08:00">2025-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%8A%80%E6%9C%AF/%E5%89%8D%E7%AB%AF/JavaScript-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" itemprop="url" rel="index"><span itemprop="name">JavaScript 基础知识</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="一、事件循环的核心组成"><a href="#一、事件循环的核心组成" class="headerlink" title="一、事件循环的核心组成"></a>一、事件循环的核心组成</h2><h3 id="1-调用栈（Call-Stack）"><a href="#1-调用栈（Call-Stack）" class="headerlink" title="1. 调用栈（Call Stack）"></a>1. 调用栈（Call Stack）</h3><ul>
-<li>用于执行<strong>同步代码</strong>，遵循后进先出（LIFO）原则</li>
-<li>函数调用被压入栈中，执行完毕后弹出</li>
-</ul>
-<h3 id="2-任务队列（Task-Queues）"><a href="#2-任务队列（Task-Queues）" class="headerlink" title="2. 任务队列（Task Queues）"></a>2. 任务队列（Task Queues）</h3><table>
-<thead>
-<tr>
-<th>队列类型</th>
-<th>包含的任务示例</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>宏任务队列</strong></td>
-<td><code>setTimeout</code>, <code>setInterval</code>, DOM 事件回调, I&#x2F;O 操作</td>
-</tr>
-<tr>
-<td><strong>微任务队列</strong></td>
-<td><code>Promise.then</code>, <code>MutationObserver</code>, <code>process.nextTick</code>（Node.js）</td>
-</tr>
-</tbody></table>
-<h3 id="3-事件循环工作流程"><a href="#3-事件循环工作流程" class="headerlink" title="3. 事件循环工作流程"></a>3. 事件循环工作流程</h3><ol>
-<li>执行调用栈中的同步代码</li>
-<li>调用栈清空后，检查并执行<strong>所有微任务</strong></li>
-<li>微任务队列清空后，执行<strong>一个宏任务</strong></li>
-<li>重复上述过程</li>
-</ol>
-<hr>
-<h2 id="二、执行优先级规则"><a href="#二、执行优先级规则" class="headerlink" title="二、执行优先级规则"></a>二、执行优先级规则</h2><h3 id="1-基础优先级"><a href="#1-基础优先级" class="headerlink" title="1. 基础优先级"></a>1. 基础优先级</h3><ol>
-<li><p>同步代码 &gt; 微任务 &gt; 宏任务</p>
-</li>
-<li><p>微任务优先级高于宏任务</p>
-<ul>
-<li><p>每个宏任务执行完毕后，会清空微任务队列，包括执行过程中新产生的微任务。</p>
-</li>
-<li><p>微任务队列必须完全清空后，才会执行下一个宏任务。</p>
-</li>
-</ul>
-</li>
-<li><p>同类型任务的执行顺序</p>
-<ul>
-<li><p>宏任务按入队顺序执行（如多个 setTimeout 按延迟时间到期顺序执行）。</p>
-</li>
-<li><p>微任务按入队顺序执行，且新添加的微任务会在此轮事件循环中执行。</p>
-</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h2 id="三、执行优先级规则"><a href="#三、执行优先级规则" class="headerlink" title="三、执行优先级规则"></a>三、执行优先级规则</h2><h3 id="1-示例代码分析"><a href="#1-示例代码分析" class="headerlink" title="1. 示例代码分析"></a>1. 示例代码分析</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步1&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;宏任务1&quot;</span>);</span><br><span class="line">  <span class="variable constant_">SS</span>;</span><br><span class="line">  <span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;宏任务1的微任务&quot;</span>));</span><br><span class="line">&#125;, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;微任务1&quot;</span>);</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;微任务1的宏任务&quot;</span>), <span class="number">0</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步2&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-执行顺序解析"><a href="#2-执行顺序解析" class="headerlink" title="2. 执行顺序解析"></a>2. 执行顺序解析</h3><ol>
-<li><p>同步代码<br>输出：同步 1 → 同步 2。</p>
-</li>
-<li><p>微任务队列处理</p>
-<ul>
-<li><p>执行 Promise.resolve().then，输出 微任务 1。</p>
-</li>
-<li><p>内部的 setTimeout 将新宏任务加入队列。</p>
-</li>
-</ul>
-</li>
-<li><p>宏任务队列处理</p>
-<ul>
-<li><p>执行第一个 setTimeout 回调，输出 宏任务 1。</p>
-</li>
-<li><p>其内部的 Promise.then 将微任务加入队列。</p>
-</li>
-<li><p>再次清空微任务队列，输出 宏任务 1 的微任务。</p>
-</li>
-</ul>
-</li>
-<li><p>处理新加入的宏任务</p>
-<ul>
-<li>执行由微任务中添加的 setTimeout，输出 微任务 1 的宏任务。</li>
-</ul>
-</li>
-</ol>
-<h3 id="3-最终输出顺序"><a href="#3-最终输出顺序" class="headerlink" title="3. 最终输出顺序"></a>3. 最终输出顺序</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">同步1 → 同步2 → 微任务1 → 宏任务1 → 宏任务1的微任务 → 微任务1的宏任务</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="四、特殊场景与注意事项"><a href="#四、特殊场景与注意事项" class="headerlink" title="四、特殊场景与注意事项"></a>四、特殊场景与注意事项</h2><ol>
-<li><p>微任务递归调用</p>
-<p>若在微任务中不断添加新的微任务（如递归调用 Promise.then），会导致事件循环卡在微任务阶段，无法执行宏任务</p>
-</li>
-<li><p>浏览器与 Node.js 的差异</p>
-<ul>
-<li><p>浏览器：微任务在渲染（如重绘）前执行。</p>
-</li>
-<li><p>Node.js：process.nextTick 优先级高于 Promise.then，且事件循环分为多个阶段（如 timers、poll、check）。</p>
-</li>
-</ul>
-</li>
-<li><p>process.nextTick、Promise.then 和 setTimeout、setImmediate 的区别</p>
-</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 典型执行顺序演示</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setTimeout&quot;</span>), <span class="number">0</span>);</span><br><span class="line"><span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;setImmediate&quot;</span>));</span><br><span class="line">process.<span class="title function_">nextTick</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;nextTick&quot;</span>));</span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;promise&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;同步代码&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 同步代码 -&gt;  nextTick -&gt; promise -&gt; setTimeout -&gt; setImmediate</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>为什么这样设计？<ul>
-<li>nextTick ：用于紧急任务（如错误处理）</li>
-<li>Promise ：标准化的异步处理</li>
-<li>setImmediate ：避免 setTimeout 的最小延迟问题</li>
-<li>setTimeout ：精确时间控制（虽然不绝对精确）</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>同步代码 &gt; nextTick &gt; Promise &gt; setTimeout &gt; setImmediate</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 需要立即执行（如初始化）</span></span><br><span class="line">process.<span class="title function_">nextTick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;初始化完成&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不紧急但需要保证顺序</span></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">resolve</span>().<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;数据预处理&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 需要延迟但不确定时间</span></span><br><span class="line"><span class="title function_">setImmediate</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;日志清理&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 精确延迟（如重试机制）</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求重试&quot;</span>);</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><table>
-<thead>
-<tr>
-<th>任务类型</th>
-<th>示例</th>
-<th>执行时机</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>同步代码</td>
-<td>console.log</td>
-<td>立即执行</td>
-</tr>
-<tr>
-<td>微任务</td>
-<td>Promise.then</td>
-<td>调用栈清空后，宏任务前执行</td>
-</tr>
-<tr>
-<td>宏任务</td>
-<td>setTimeout, I&#x2F;O</td>
-<td>每轮事件循环处理一个宏任务</td>
-</tr>
-</tbody></table>
-<h3 id="核心规则："><a href="#核心规则：" class="headerlink" title="核心规则："></a>核心规则：</h3><blockquote>
-<p>同步代码 → 微任务队列清空 → 一个宏任务 → 微任务队列清空 → 下一个宏任务…<br>理解事件循环的优先级机制，能够帮助开发者更好地控制代码执行顺序，避免异步逻辑的混乱。</p>
-</blockquote>
 
       
     </div>
