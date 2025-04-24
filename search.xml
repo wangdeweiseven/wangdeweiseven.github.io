@@ -430,6 +430,143 @@
       </tags>
   </entry>
   <entry>
+    <title>Web安全必修课-Cookie的食用指南 🍪</title>
+    <url>/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/</url>
+    <content><![CDATA[<h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
+<hr>
+<h2 id="二、Cookie-的原料配方表"><a href="#二、Cookie-的原料配方表" class="headerlink" title="二、Cookie 的原料配方表"></a>二、Cookie 的原料配方表</h2><p>每个 Cookie 都包含这些核心配料：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;username=JohnDoe;</span></span><br><span class="line"><span class="string">                  expires=Fri, 31 Dec 2023 23:59:59 GMT;</span></span><br><span class="line"><span class="string">                  path=/;</span></span><br><span class="line"><span class="string">                  domain=.example.com;</span></span><br><span class="line"><span class="string">                  Secure;</span></span><br><span class="line"><span class="string">                  HttpOnly;</span></span><br><span class="line"><span class="string">                  SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>配料名</th>
+<th>作用说明</th>
+<th>类比解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key&#x3D;value</td>
+<td>存储的键值对</td>
+<td>储物柜编号+存放物品</td>
+</tr>
+<tr>
+<td>Expires</td>
+<td>过期时间（日期格式）</td>
+<td>小票有效期</td>
+</tr>
+<tr>
+<td>Max-Age</td>
+<td>存活秒数（优先级更高）</td>
+<td>倒计时自毁装置</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td>生效域名</td>
+<td>连锁超市分店通用券</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>URL 路径限制</td>
+<td>仅限二楼储物区使用</td>
+</tr>
+<tr>
+<td>Secure</td>
+<td>仅 HTTPS 传输</td>
+<td>防窃听加密传输</td>
+</tr>
+<tr>
+<td>HttpOnly</td>
+<td>禁止 JS 访问</td>
+<td>储物柜管理员专属钥匙</td>
+</tr>
+<tr>
+<td>SameSite</td>
+<td>跨站发送限制</td>
+<td>防止其他商店冒领的安检</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、前端厨房实操手册"><a href="#三、前端厨房实操手册" class="headerlink" title="三、前端厨房实操手册"></a>三、前端厨房实操手册</h2><h3 id="3-1-烤制新鲜-Cookie"><a href="#3-1-烤制新鲜-Cookie" class="headerlink" title="3.1 烤制新鲜 Cookie"></a>3.1 烤制新鲜 Cookie</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基础款曲奇</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;theme=dark&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 豪华定制版</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bakeCookie</span>(<span class="params">name, value, days</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> date = <span class="keyword">new</span> <span class="title class_">Date</span>();</span><br><span class="line">  date.<span class="title function_">setTime</span>(date.<span class="title function_">getTime</span>() + days * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">`<span class="subst">$&#123;name&#125;</span>=<span class="subst">$&#123;value&#125;</span>; </span></span><br><span class="line"><span class="string">                    expires=<span class="subst">$&#123;date.toUTCString()&#125;</span>; </span></span><br><span class="line"><span class="string">                    path=/`</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现烤一个7天过期的饼干</span></span><br><span class="line"><span class="title function_">bakeCookie</span>(<span class="string">&quot;user_token&quot;</span>, <span class="string">&quot;abc123&quot;</span>, <span class="number">7</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-品尝-Cookie-的味道"><a href="#3-2-品尝-Cookie-的味道" class="headerlink" title="3.2 品尝 Cookie 的味道"></a>3.2 品尝 Cookie 的味道</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 读取整盒饼干</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>);</span><br><span class="line"><span class="comment">// 输出：&quot;theme=dark; user_token=abc123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 找出特定饼干</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getCookie</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">document</span>.<span class="property">cookie</span></span><br><span class="line">    .<span class="title function_">split</span>(<span class="string">&quot;; &quot;</span>)</span><br><span class="line">    .<span class="title function_">find</span>(<span class="function">(<span class="params">row</span>) =&gt;</span> row.<span class="title function_">startsWith</span>(<span class="string">`<span class="subst">$&#123;name&#125;</span>=`</span>))</span><br><span class="line">    ?.<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>)[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title function_">getCookie</span>(<span class="string">&quot;theme&quot;</span>)); <span class="comment">// 输出：dark</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-处理过期饼干"><a href="#3-3-处理过期饼干" class="headerlink" title="3.3 处理过期饼干"></a>3.3 处理过期饼干</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 让饼干立即过期</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;user_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、食用安全须知-⚠️"><a href="#四、食用安全须知-⚠️" class="headerlink" title="四、食用安全须知 ⚠️"></a>四、食用安全须知 ⚠️</h2><ol>
+<li><p>容量警报</p>
+<ul>
+<li>单个 Cookie ≤ 4KB</li>
+<li>单域名 ≤ 20 个 Cookie（各浏览器不同）</li>
+</ul>
+</li>
+<li><p>XSS 防御<br>敏感 Cookie 务必添加 HttpOnly 属性，就像把贵重物品锁进保险柜</p>
+</li>
+<li><p>CSRF 防护<br>使用 SameSite&#x3D;Strict&#x2F;Lax，相当于给储物柜加指纹锁</p>
+</li>
+<li><p>敏感信息禁区 s<br>❌ 永远不要在 Cookie 中存储：</p>
+<ul>
+<li>用户密码</li>
+<li>信用卡号</li>
+<li>JWT 令牌的裸奔版本</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="五、什么时候该换零食？🍪-↔️-🥡"><a href="#五、什么时候该换零食？🍪-↔️-🥡" class="headerlink" title="五、什么时候该换零食？🍪 ↔️ 🥡"></a>五、什么时候该换零食？🍪 ↔️ 🥡</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Cookie</th>
+<th>Web Storage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要自动过期</td>
+<td>✅ 原生支持</td>
+<td>❌ 需手动清除</td>
+</tr>
+<tr>
+<td>需要服务端读取</td>
+<td>✅ 自动携带</td>
+<td>❌ 需主动发送</td>
+</tr>
+<tr>
+<td>存储大量数据</td>
+<td>❌ 容量小</td>
+<td>✅ 5MB+</td>
+</tr>
+<tr>
+<td>敏感操作验证</td>
+<td>✅ HttpOnly 防护</td>
+<td>❌ 暴露在 JS 环境</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、最佳食用姿势-✨"><a href="#六、最佳食用姿势-✨" class="headerlink" title="六、最佳食用姿势 ✨"></a>六、最佳食用姿势 ✨</h2><ul>
+<li>给 Cookie 穿上 HTTPS 的防弹衣（Secure 属性）</li>
+<li>像对待密码一样设置 HttpOnly</li>
+<li>使用编码处理特殊字符：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">encodeURIComponent</span>(<span class="string">&quot;user=张三&amp;age=20&quot;</span>);</span><br><span class="line"><span class="comment">// → &quot;user%3D%E5%BC%A0%E4%B8%89%26age%3D20&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>定期检查 Cookie 的有效期，就像查看食品保质期</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>Web安全</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Web安全</tag>
+        <tag>cookie的食用指南</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Web安全必修课-同源策略&amp;cookie访问机制</title>
     <url>/2022/07/09/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5&amp;cookie%E8%AE%BF%E9%97%AE%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<h2 id="一、为什么要采用同源策略"><a href="#一、为什么要采用同源策略" class="headerlink" title="一、为什么要采用同源策略"></a>一、为什么要采用同源策略</h2><p><strong>浏览器同源策略(Same-Origin Policy)是浏览器最核心的安全机制之一，用于限制不同源的文档或脚本如何相互交互。</strong></p>
@@ -697,143 +834,6 @@
         <tag>前端</tag>
         <tag>Web安全</tag>
         <tag>跨域</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Web安全必修课-Cookie的食用指南 🍪</title>
-    <url>/2022/07/06/Web%E5%AE%89%E5%85%A8%E5%BF%85%E4%BF%AE%E8%AF%BE-cookie%E7%9A%84%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8D%97/</url>
-    <content><![CDATA[<h2 id="一、Cookie-是什么？超市储物柜的即视感"><a href="#一、Cookie-是什么？超市储物柜的即视感" class="headerlink" title="一、Cookie 是什么？超市储物柜的即视感"></a>一、Cookie 是什么？超市储物柜的即视感</h2><p>想象你第一次去超市购物，服务员给了你一张<strong>小票（Cookie）</strong>。之后每次去超市，只要出示这张小票就能直接打开自己的储物柜。Cookie 就是浏览器帮我们记住这些”储物柜小票”的技术。</p>
-<hr>
-<h2 id="二、Cookie-的原料配方表"><a href="#二、Cookie-的原料配方表" class="headerlink" title="二、Cookie 的原料配方表"></a>二、Cookie 的原料配方表</h2><p>每个 Cookie 都包含这些核心配料：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;username=JohnDoe;</span></span><br><span class="line"><span class="string">                  expires=Fri, 31 Dec 2023 23:59:59 GMT;</span></span><br><span class="line"><span class="string">                  path=/;</span></span><br><span class="line"><span class="string">                  domain=.example.com;</span></span><br><span class="line"><span class="string">                  Secure;</span></span><br><span class="line"><span class="string">                  HttpOnly;</span></span><br><span class="line"><span class="string">                  SameSite=Lax&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>配料名</th>
-<th>作用说明</th>
-<th>类比解释</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>key&#x3D;value</td>
-<td>存储的键值对</td>
-<td>储物柜编号+存放物品</td>
-</tr>
-<tr>
-<td>Expires</td>
-<td>过期时间（日期格式）</td>
-<td>小票有效期</td>
-</tr>
-<tr>
-<td>Max-Age</td>
-<td>存活秒数（优先级更高）</td>
-<td>倒计时自毁装置</td>
-</tr>
-<tr>
-<td>Domain</td>
-<td>生效域名</td>
-<td>连锁超市分店通用券</td>
-</tr>
-<tr>
-<td>Path</td>
-<td>URL 路径限制</td>
-<td>仅限二楼储物区使用</td>
-</tr>
-<tr>
-<td>Secure</td>
-<td>仅 HTTPS 传输</td>
-<td>防窃听加密传输</td>
-</tr>
-<tr>
-<td>HttpOnly</td>
-<td>禁止 JS 访问</td>
-<td>储物柜管理员专属钥匙</td>
-</tr>
-<tr>
-<td>SameSite</td>
-<td>跨站发送限制</td>
-<td>防止其他商店冒领的安检</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="三、前端厨房实操手册"><a href="#三、前端厨房实操手册" class="headerlink" title="三、前端厨房实操手册"></a>三、前端厨房实操手册</h2><h3 id="3-1-烤制新鲜-Cookie"><a href="#3-1-烤制新鲜-Cookie" class="headerlink" title="3.1 烤制新鲜 Cookie"></a>3.1 烤制新鲜 Cookie</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基础款曲奇</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;theme=dark&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 豪华定制版</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bakeCookie</span>(<span class="params">name, value, days</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> date = <span class="keyword">new</span> <span class="title class_">Date</span>();</span><br><span class="line">  date.<span class="title function_">setTime</span>(date.<span class="title function_">getTime</span>() + days * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">`<span class="subst">$&#123;name&#125;</span>=<span class="subst">$&#123;value&#125;</span>; </span></span><br><span class="line"><span class="string">                    expires=<span class="subst">$&#123;date.toUTCString()&#125;</span>; </span></span><br><span class="line"><span class="string">                    path=/`</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现烤一个7天过期的饼干</span></span><br><span class="line"><span class="title function_">bakeCookie</span>(<span class="string">&quot;user_token&quot;</span>, <span class="string">&quot;abc123&quot;</span>, <span class="number">7</span>);</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-2-品尝-Cookie-的味道"><a href="#3-2-品尝-Cookie-的味道" class="headerlink" title="3.2 品尝 Cookie 的味道"></a>3.2 品尝 Cookie 的味道</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 读取整盒饼干</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">document</span>.<span class="property">cookie</span>);</span><br><span class="line"><span class="comment">// 输出：&quot;theme=dark; user_token=abc123&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 找出特定饼干</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getCookie</span>(<span class="params">name</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">document</span>.<span class="property">cookie</span></span><br><span class="line">    .<span class="title function_">split</span>(<span class="string">&quot;; &quot;</span>)</span><br><span class="line">    .<span class="title function_">find</span>(<span class="function">(<span class="params">row</span>) =&gt;</span> row.<span class="title function_">startsWith</span>(<span class="string">`<span class="subst">$&#123;name&#125;</span>=`</span>))</span><br><span class="line">    ?.<span class="title function_">split</span>(<span class="string">&quot;=&quot;</span>)[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title function_">getCookie</span>(<span class="string">&quot;theme&quot;</span>)); <span class="comment">// 输出：dark</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-3-处理过期饼干"><a href="#3-3-处理过期饼干" class="headerlink" title="3.3 处理过期饼干"></a>3.3 处理过期饼干</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 让饼干立即过期</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">cookie</span> = <span class="string">&quot;user_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="四、食用安全须知-⚠️"><a href="#四、食用安全须知-⚠️" class="headerlink" title="四、食用安全须知 ⚠️"></a>四、食用安全须知 ⚠️</h2><ol>
-<li><p>容量警报</p>
-<ul>
-<li>单个 Cookie ≤ 4KB</li>
-<li>单域名 ≤ 20 个 Cookie（各浏览器不同）</li>
-</ul>
-</li>
-<li><p>XSS 防御<br>敏感 Cookie 务必添加 HttpOnly 属性，就像把贵重物品锁进保险柜</p>
-</li>
-<li><p>CSRF 防护<br>使用 SameSite&#x3D;Strict&#x2F;Lax，相当于给储物柜加指纹锁</p>
-</li>
-<li><p>敏感信息禁区 s<br>❌ 永远不要在 Cookie 中存储：</p>
-<ul>
-<li>用户密码</li>
-<li>信用卡号</li>
-<li>JWT 令牌的裸奔版本</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h2 id="五、什么时候该换零食？🍪-↔️-🥡"><a href="#五、什么时候该换零食？🍪-↔️-🥡" class="headerlink" title="五、什么时候该换零食？🍪 ↔️ 🥡"></a>五、什么时候该换零食？🍪 ↔️ 🥡</h2><table>
-<thead>
-<tr>
-<th>场景</th>
-<th>Cookie</th>
-<th>Web Storage</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>需要自动过期</td>
-<td>✅ 原生支持</td>
-<td>❌ 需手动清除</td>
-</tr>
-<tr>
-<td>需要服务端读取</td>
-<td>✅ 自动携带</td>
-<td>❌ 需主动发送</td>
-</tr>
-<tr>
-<td>存储大量数据</td>
-<td>❌ 容量小</td>
-<td>✅ 5MB+</td>
-</tr>
-<tr>
-<td>敏感操作验证</td>
-<td>✅ HttpOnly 防护</td>
-<td>❌ 暴露在 JS 环境</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="六、最佳食用姿势-✨"><a href="#六、最佳食用姿势-✨" class="headerlink" title="六、最佳食用姿势 ✨"></a>六、最佳食用姿势 ✨</h2><ul>
-<li>给 Cookie 穿上 HTTPS 的防弹衣（Secure 属性）</li>
-<li>像对待密码一样设置 HttpOnly</li>
-<li>使用编码处理特殊字符：</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">encodeURIComponent</span>(<span class="string">&quot;user=张三&amp;age=20&quot;</span>);</span><br><span class="line"><span class="comment">// → &quot;user%3D%E5%BC%A0%E4%B8%89%26age%3D20&quot;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>定期检查 Cookie 的有效期，就像查看食品保质期</li>
-</ul>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>Web安全</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>Web安全</tag>
-        <tag>cookie的食用指南</tag>
       </tags>
   </entry>
   <entry>
@@ -1845,164 +1845,6 @@
       </tags>
   </entry>
   <entry>
-    <title>浏览器原生请求对象</title>
-    <url>/2022/07/04/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%8E%9F%E7%94%9F%E8%AF%B7%E6%B1%82%E5%AF%B9%E8%B1%A1/</url>
-    <content><![CDATA[<h1 id="前端请求技术全景：从原生-API-到框架最佳实践"><a href="#前端请求技术全景：从原生-API-到框架最佳实践" class="headerlink" title="前端请求技术全景：从原生 API 到框架最佳实践"></a>前端请求技术全景：从原生 API 到框架最佳实践</h1><h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>前端请求技术经历了三个阶段演进：</p>
-<ol>
-<li><strong>XMLHttpRequest 时代</strong>（2005）：首个异步请求 API，催生 Ajax 革命</li>
-<li><strong>Fetch API 时代</strong>（2015）：基于 Promise 的现代化方案</li>
-<li><strong>封装库时代</strong>：axios 等库填补原生 API 的易用性缺口</li>
-</ol>
-<p>现代 Web 应用平均发起 50+次请求，请求处理能力直接影响用户体验和核心业务指标。</p>
-<hr>
-<h2 id="2-原生-API-详解"><a href="#2-原生-API-详解" class="headerlink" title="2. 原生 API 详解"></a>2. 原生 API 详解</h2><h3 id="XHR-vs-Fetch-核心对比"><a href="#XHR-vs-Fetch-核心对比" class="headerlink" title="XHR vs Fetch 核心对比"></a>XHR vs Fetch 核心对比</h3><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>XHR</th>
-<th>Fetch</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>异步模型</td>
-<td>回调机制</td>
-<td>Promise</td>
-</tr>
-<tr>
-<td>请求终止</td>
-<td>xhr.abort()</td>
-<td>AbortController</td>
-</tr>
-<tr>
-<td>进度监控</td>
-<td>progress 事件</td>
-<td>不可直接支持</td>
-</tr>
-<tr>
-<td>超时设置</td>
-<td>timeout 属性</td>
-<td>需手动封装</td>
-</tr>
-<tr>
-<td>CORS 处理</td>
-<td>需 withCredentials</td>
-<td>credentials 参数</td>
-</tr>
-</tbody></table>
-<h3 id="XHR-示例"><a href="#XHR-示例" class="headerlink" title="XHR 示例"></a>XHR 示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 简单实现ajax s</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> url = <span class="string">&quot;xxxxxxxxxxxx&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="variable constant_">XHR</span> = <span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// XHR 支持同步请求（ open 方法的第三个参数设为 false ），但会阻塞 UI 线程，通常不推荐使用。</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>, url, <span class="literal">true</span>);</span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">send</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/** readyState</span></span><br><span class="line"><span class="comment"> * 0(UNSENT): 请求未初始化 (open()方法未被调用)</span></span><br><span class="line"><span class="comment"> * 1(OPEND): 服务器连接已建立 (open()方法已被调用, send() 还未调用)</span></span><br><span class="line"><span class="comment"> * 2(HEADER_RECEIVED): 请求已接收 (send()方法已被调用,且响应头和状态码已收到)</span></span><br><span class="line"><span class="comment"> * 3(LOADING): 请求处理中,正在接收响应体，此时 responseText 属性可能包含部分数据</span></span><br><span class="line"><span class="comment"> * 4(DONE): 请求已完成，且响应已就绪 (响应数据已完全接收或请求失败)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 检查XMLHttpRequest对象的状态和响应状态码</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable constant_">XHR</span>.<span class="property">readyState</span> == <span class="number">4</span> &amp;&amp; <span class="variable constant_">XHR</span>.<span class="property">status</span> == <span class="number">200</span>) &#123;</span><br><span class="line">    <span class="comment">// 当请求已完成（readyState为4）且响应状态码为200（成功）时执行以下代码</span></span><br><span class="line">    <span class="comment">// 将响应文本解析为JSON对象</span></span><br><span class="line">    result = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable constant_">XHR</span>.<span class="property">responseText</span>);</span><br><span class="line">    <span class="comment">// 将解析后的结果输出到控制台</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Fetch-示例：带超时的-GET-请求"><a href="#Fetch-示例：带超时的-GET-请求" class="headerlink" title="Fetch 示例：带超时的 GET 请求"></a>Fetch 示例：带超时的 GET 请求</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>(), <span class="number">5000</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">signal</span>: controller.<span class="property">signal</span>,</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err.<span class="property">name</span> === <span class="string">&quot;AbortError&quot;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求超时&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="3-封装库分析：axios-核心优势"><a href="#3-封装库分析：axios-核心优势" class="headerlink" title="3. 封装库分析：axios 核心优势"></a>3. 封装库分析：axios 核心优势</h2><h3 id="核心能力矩阵"><a href="#核心能力矩阵" class="headerlink" title="核心能力矩阵"></a>核心能力矩阵</h3><ol>
-<li>拦截器系统</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求拦截器 - 在请求发送前执行</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 修改请求配置对象，添加 Authorization 请求头</span></span><br><span class="line">  config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="title function_">getToken</span>();</span><br><span class="line">  <span class="comment">// 必须返回修改后的配置对象</span></span><br><span class="line">  <span class="keyword">return</span> config;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应拦截器 - 在响应返回后执行</span></span><br><span class="line"><span class="comment">// normalizeData 和 handleApiErrord 是自定义的处理函数</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="comment">// 第一个函数处理成功响应 (状态码 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">response</span>) =&gt;</span> <span class="title function_">normalizeData</span>(response.<span class="property">data</span>),</span><br><span class="line">  <span class="comment">// 第二个函数处理错误响应 (状态码非 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> <span class="title function_">handleApiError</span>(error)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>关键点说明：</p>
-<ol>
-<li><p>请求拦截器 ：</p>
-<ul>
-<li>通过 axios.interceptors.request.use() 注册</li>
-<li>每次发送请求前自动执行</li>
-<li>典型用途：添加认证头、设置公共参数、修改请求配置</li>
-<li>示例中自动添加了 Authorization 头，值来自 getToken() 函数</li>
-</ul>
-</li>
-<li><p>响应拦截器 ：</p>
-<ul>
-<li>通过 axios.interceptors.response.use() 注册</li>
-<li>接收两个回调函数：成功回调和错误回调</li>
-<li>成功时：对响应数据进行标准化处理 ( normalizeData )</li>
-<li>错误时：统一错误处理 ( handleApiError )</li>
-</ul>
-</li>
-<li><p>拦截器链 ：</p>
-<ul>
-<li>可以注册多个拦截器，按注册顺序形成处理链</li>
-<li>请求拦截器：后注册的先执行</li>
-<li>响应拦截器：先注册的先执行<br>这种设计实现了请求&#x2F;响应的统一处理，避免了在每个请求中重复相同的逻辑。</li>
-</ul>
-</li>
-</ol>
-</li>
-</ul>
-<ol start="2">
-<li>取消请求（CancelToken 已弃用，推荐 AbortController）</li>
-</ol>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 AbortController 实例</span></span><br><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 发起 GET 请求，将 controller 的 signal 传入请求配置</span></span><br><span class="line">axios</span><br><span class="line">  .<span class="title function_">get</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 将中止信号与请求关联</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 请求成功处理逻辑</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(response.<span class="property">data</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 错误处理</span></span><br><span class="line">    <span class="keyword">if</span> (axios.<span class="title function_">isCancel</span>(error)) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求已被取消:&quot;</span>, error.<span class="property">message</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求错误:&quot;</span>, error);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 需要取消请求时调用 abort() 方法</span></span><br><span class="line">controller.<span class="title function_">abort</span>(); <span class="comment">// 这会触发请求取消</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>关键点说明：</p>
-<ol>
-<li><p>AbortController ：</p>
-<ul>
-<li>是现代浏览器提供的原生 API</li>
-<li>通过 signal 属性提供中止信号</li>
-<li>调用 abort() 方法会触发请求取消</li>
-</ul>
-</li>
-<li><p>axios 集成 ：</p>
-<ul>
-<li>将 controller.signal 传入请求配置</li>
-<li>当调用 abort() 时，axios 会自动取消请求</li>
-<li>取消后会触发 catch 分支，错误类型为 Cancel</li>
-</ul>
-</li>
-<li><p>应用场景 ：</p>
-<ul>
-<li>用户导航离开页面时取消未完成请求</li>
-<li>表单提交后防止重复提交</li>
-<li>实现请求超时控制（配合 setTimeout ）</li>
-</ul>
-</li>
-<li><p>与传统 CancelToken 的区别 ：</p>
-<ul>
-<li>这是浏览器原生方案，不再依赖 axios 特有的 CancelToken</li>
-<li>更简洁，与现代 Fetch API 的取消机制一致</li>
-<li>CancelToken 已被标记为 deprecated</li>
-</ul>
-</li>
-</ol>
-</li>
-</ul>
-<ol start="3">
-<li><p>自动转换</p>
-<ul>
-<li><p>自动 JSON 解析</p>
-</li>
-<li><p>请求数据序列化</p>
-</li>
-<li><p>浏览器环境自动 XSRF 防御</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="4-框架集成最佳实践"><a href="#4-框架集成最佳实践" class="headerlink" title="4. 框架集成最佳实践"></a>4. 框架集成最佳实践</h2><h3 id="React-方案"><a href="#React-方案" class="headerlink" title="React 方案"></a>React 方案</h3><blockquote>
-<p>这段代码实现了一个自定义 React Hook useFetch ，用于封装 axios 的数据获取逻辑，具有自动取消请求的功能</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">useFetch</span>(<span class="params">url</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 使用 useState 管理获取到的数据状态</span></span><br><span class="line">  <span class="keyword">const</span> [data, setData] = <span class="title function_">useState</span>(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 使用 useEffect 处理副作用</span></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 3. 创建 AbortController 用于取消请求</span></span><br><span class="line">    <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 发起 axios GET 请求</span></span><br><span class="line">    axios</span><br><span class="line">      .<span class="title function_">get</span>(url, &#123;</span><br><span class="line">        <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 绑定取消信号</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="title function_">setData</span>(res.<span class="property">data</span>)) <span class="comment">// 成功时更新状态</span></span><br><span class="line">      .<span class="title function_">catch</span>(<span class="variable language_">console</span>.<span class="property">error</span>); <span class="comment">// 错误时打印日志</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 清理函数：组件卸载时取消请求</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>();</span><br><span class="line">  &#125;, [url]); <span class="comment">// 6. 依赖项：url 变化时重新执行</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. 返回获取到的数据</span></span><br><span class="line">  <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>使用示例:</p>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/users&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!data) <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>Loading...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;JSON.stringify(data)&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Vue-3-组合式-API"><a href="#Vue-3-组合式-API" class="headerlink" title="Vue 3 组合式 API"></a>Vue 3 组合式 API</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useFetch &#125; <span class="keyword">from</span> <span class="string">&quot;@vueuse/core&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; data, error &#125; = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/data&quot;</span>).<span class="title function_">get</span>().<span class="title function_">json</span>();</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-高级应用场景"><a href="#5-高级应用场景" class="headerlink" title="5. 高级应用场景"></a>5. 高级应用场景</h2><h3 id="WebSocket-实时通信"><a href="#WebSocket-实时通信" class="headerlink" title="WebSocket 实时通信"></a>WebSocket 实时通信</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 WebSocket 连接，指定服务器地址</span></span><br><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;ws://localhost:8080&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 连接建立成功回调</span></span><br><span class="line">socket.<span class="property">onopen</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已建立&quot;</span>);</span><br><span class="line">  <span class="comment">// 连接建立后立即向服务器发送消息</span></span><br><span class="line">  socket.<span class="title function_">send</span>(<span class="string">&quot;Hello, Server!&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 收到服务器消息回调</span></span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="keyword">function</span> (<span class="params">event</span>) &#123;</span><br><span class="line">  <span class="comment">// event.data 包含服务器发送的数据</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 连接关闭回调</span></span><br><span class="line">socket.<span class="property">onclose</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已关闭&quot;</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>技术</category>
-        <category>前端</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-        <tag>基础知识</tag>
-        <tag>浏览器-请求对象</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>学习目录</title>
     <url>/2018/05/01/%E5%AD%A6%E4%B9%A0%E7%9B%AE%E5%BD%95/</url>
     <content><![CDATA[<img src="/images/page-header.png" class="" title="首页展示 width&#x3D;50%">
@@ -2239,6 +2081,164 @@
       <categories>
         <category>目录</category>
       </categories>
+  </entry>
+  <entry>
+    <title>浏览器原生请求对象</title>
+    <url>/2022/07/04/%E6%B5%8F%E8%A7%88%E5%99%A8%E5%8E%9F%E7%94%9F%E8%AF%B7%E6%B1%82%E5%AF%B9%E8%B1%A1/</url>
+    <content><![CDATA[<h1 id="前端请求技术全景：从原生-API-到框架最佳实践"><a href="#前端请求技术全景：从原生-API-到框架最佳实践" class="headerlink" title="前端请求技术全景：从原生 API 到框架最佳实践"></a>前端请求技术全景：从原生 API 到框架最佳实践</h1><h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>前端请求技术经历了三个阶段演进：</p>
+<ol>
+<li><strong>XMLHttpRequest 时代</strong>（2005）：首个异步请求 API，催生 Ajax 革命</li>
+<li><strong>Fetch API 时代</strong>（2015）：基于 Promise 的现代化方案</li>
+<li><strong>封装库时代</strong>：axios 等库填补原生 API 的易用性缺口</li>
+</ol>
+<p>现代 Web 应用平均发起 50+次请求，请求处理能力直接影响用户体验和核心业务指标。</p>
+<hr>
+<h2 id="2-原生-API-详解"><a href="#2-原生-API-详解" class="headerlink" title="2. 原生 API 详解"></a>2. 原生 API 详解</h2><h3 id="XHR-vs-Fetch-核心对比"><a href="#XHR-vs-Fetch-核心对比" class="headerlink" title="XHR vs Fetch 核心对比"></a>XHR vs Fetch 核心对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>XHR</th>
+<th>Fetch</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>异步模型</td>
+<td>回调机制</td>
+<td>Promise</td>
+</tr>
+<tr>
+<td>请求终止</td>
+<td>xhr.abort()</td>
+<td>AbortController</td>
+</tr>
+<tr>
+<td>进度监控</td>
+<td>progress 事件</td>
+<td>不可直接支持</td>
+</tr>
+<tr>
+<td>超时设置</td>
+<td>timeout 属性</td>
+<td>需手动封装</td>
+</tr>
+<tr>
+<td>CORS 处理</td>
+<td>需 withCredentials</td>
+<td>credentials 参数</td>
+</tr>
+</tbody></table>
+<h3 id="XHR-示例"><a href="#XHR-示例" class="headerlink" title="XHR 示例"></a>XHR 示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 简单实现ajax s</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> url = <span class="string">&quot;xxxxxxxxxxxx&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> result;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="variable constant_">XHR</span> = <span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// XHR 支持同步请求（ open 方法的第三个参数设为 false ），但会阻塞 UI 线程，通常不推荐使用。</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>, url, <span class="literal">true</span>);</span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="title function_">send</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/** readyState</span></span><br><span class="line"><span class="comment"> * 0(UNSENT): 请求未初始化 (open()方法未被调用)</span></span><br><span class="line"><span class="comment"> * 1(OPEND): 服务器连接已建立 (open()方法已被调用, send() 还未调用)</span></span><br><span class="line"><span class="comment"> * 2(HEADER_RECEIVED): 请求已接收 (send()方法已被调用,且响应头和状态码已收到)</span></span><br><span class="line"><span class="comment"> * 3(LOADING): 请求处理中,正在接收响应体，此时 responseText 属性可能包含部分数据</span></span><br><span class="line"><span class="comment"> * 4(DONE): 请求已完成，且响应已就绪 (响应数据已完全接收或请求失败)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable constant_">XHR</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 检查XMLHttpRequest对象的状态和响应状态码</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="variable constant_">XHR</span>.<span class="property">readyState</span> == <span class="number">4</span> &amp;&amp; <span class="variable constant_">XHR</span>.<span class="property">status</span> == <span class="number">200</span>) &#123;</span><br><span class="line">    <span class="comment">// 当请求已完成（readyState为4）且响应状态码为200（成功）时执行以下代码</span></span><br><span class="line">    <span class="comment">// 将响应文本解析为JSON对象</span></span><br><span class="line">    result = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="variable constant_">XHR</span>.<span class="property">responseText</span>);</span><br><span class="line">    <span class="comment">// 将解析后的结果输出到控制台</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Fetch-示例：带超时的-GET-请求"><a href="#Fetch-示例：带超时的-GET-请求" class="headerlink" title="Fetch 示例：带超时的 GET 请求"></a>Fetch 示例：带超时的 GET 请求</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>(), <span class="number">5000</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">signal</span>: controller.<span class="property">signal</span>,</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (err.<span class="property">name</span> === <span class="string">&quot;AbortError&quot;</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求超时&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-封装库分析：axios-核心优势"><a href="#3-封装库分析：axios-核心优势" class="headerlink" title="3. 封装库分析：axios 核心优势"></a>3. 封装库分析：axios 核心优势</h2><h3 id="核心能力矩阵"><a href="#核心能力矩阵" class="headerlink" title="核心能力矩阵"></a>核心能力矩阵</h3><ol>
+<li>拦截器系统</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求拦截器 - 在请求发送前执行</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 修改请求配置对象，添加 Authorization 请求头</span></span><br><span class="line">  config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="title function_">getToken</span>();</span><br><span class="line">  <span class="comment">// 必须返回修改后的配置对象</span></span><br><span class="line">  <span class="keyword">return</span> config;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应拦截器 - 在响应返回后执行</span></span><br><span class="line"><span class="comment">// normalizeData 和 handleApiErrord 是自定义的处理函数</span></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="comment">// 第一个函数处理成功响应 (状态码 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">response</span>) =&gt;</span> <span class="title function_">normalizeData</span>(response.<span class="property">data</span>),</span><br><span class="line">  <span class="comment">// 第二个函数处理错误响应 (状态码非 2xx)</span></span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> <span class="title function_">handleApiError</span>(error)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>关键点说明：</p>
+<ol>
+<li><p>请求拦截器 ：</p>
+<ul>
+<li>通过 axios.interceptors.request.use() 注册</li>
+<li>每次发送请求前自动执行</li>
+<li>典型用途：添加认证头、设置公共参数、修改请求配置</li>
+<li>示例中自动添加了 Authorization 头，值来自 getToken() 函数</li>
+</ul>
+</li>
+<li><p>响应拦截器 ：</p>
+<ul>
+<li>通过 axios.interceptors.response.use() 注册</li>
+<li>接收两个回调函数：成功回调和错误回调</li>
+<li>成功时：对响应数据进行标准化处理 ( normalizeData )</li>
+<li>错误时：统一错误处理 ( handleApiError )</li>
+</ul>
+</li>
+<li><p>拦截器链 ：</p>
+<ul>
+<li>可以注册多个拦截器，按注册顺序形成处理链</li>
+<li>请求拦截器：后注册的先执行</li>
+<li>响应拦截器：先注册的先执行<br>这种设计实现了请求&#x2F;响应的统一处理，避免了在每个请求中重复相同的逻辑。</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<ol start="2">
+<li>取消请求（CancelToken 已弃用，推荐 AbortController）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 AbortController 实例</span></span><br><span class="line"><span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 发起 GET 请求，将 controller 的 signal 传入请求配置</span></span><br><span class="line">axios</span><br><span class="line">  .<span class="title function_">get</span>(<span class="string">&quot;/api/data&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 将中止信号与请求关联</span></span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function">(<span class="params">response</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 请求成功处理逻辑</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(response.<span class="property">data</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">  .<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 错误处理</span></span><br><span class="line">    <span class="keyword">if</span> (axios.<span class="title function_">isCancel</span>(error)) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求已被取消:&quot;</span>, error.<span class="property">message</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;请求错误:&quot;</span>, error);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 需要取消请求时调用 abort() 方法</span></span><br><span class="line">controller.<span class="title function_">abort</span>(); <span class="comment">// 这会触发请求取消</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>关键点说明：</p>
+<ol>
+<li><p>AbortController ：</p>
+<ul>
+<li>是现代浏览器提供的原生 API</li>
+<li>通过 signal 属性提供中止信号</li>
+<li>调用 abort() 方法会触发请求取消</li>
+</ul>
+</li>
+<li><p>axios 集成 ：</p>
+<ul>
+<li>将 controller.signal 传入请求配置</li>
+<li>当调用 abort() 时，axios 会自动取消请求</li>
+<li>取消后会触发 catch 分支，错误类型为 Cancel</li>
+</ul>
+</li>
+<li><p>应用场景 ：</p>
+<ul>
+<li>用户导航离开页面时取消未完成请求</li>
+<li>表单提交后防止重复提交</li>
+<li>实现请求超时控制（配合 setTimeout ）</li>
+</ul>
+</li>
+<li><p>与传统 CancelToken 的区别 ：</p>
+<ul>
+<li>这是浏览器原生方案，不再依赖 axios 特有的 CancelToken</li>
+<li>更简洁，与现代 Fetch API 的取消机制一致</li>
+<li>CancelToken 已被标记为 deprecated</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<ol start="3">
+<li><p>自动转换</p>
+<ul>
+<li><p>自动 JSON 解析</p>
+</li>
+<li><p>请求数据序列化</p>
+</li>
+<li><p>浏览器环境自动 XSRF 防御</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-框架集成最佳实践"><a href="#4-框架集成最佳实践" class="headerlink" title="4. 框架集成最佳实践"></a>4. 框架集成最佳实践</h2><h3 id="React-方案"><a href="#React-方案" class="headerlink" title="React 方案"></a>React 方案</h3><blockquote>
+<p>这段代码实现了一个自定义 React Hook useFetch ，用于封装 axios 的数据获取逻辑，具有自动取消请求的功能</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">useFetch</span>(<span class="params">url</span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 使用 useState 管理获取到的数据状态</span></span><br><span class="line">  <span class="keyword">const</span> [data, setData] = <span class="title function_">useState</span>(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 使用 useEffect 处理副作用</span></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 3. 创建 AbortController 用于取消请求</span></span><br><span class="line">    <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 发起 axios GET 请求</span></span><br><span class="line">    axios</span><br><span class="line">      .<span class="title function_">get</span>(url, &#123;</span><br><span class="line">        <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="comment">// 绑定取消信号</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function">(<span class="params">res</span>) =&gt;</span> <span class="title function_">setData</span>(res.<span class="property">data</span>)) <span class="comment">// 成功时更新状态</span></span><br><span class="line">      .<span class="title function_">catch</span>(<span class="variable language_">console</span>.<span class="property">error</span>); <span class="comment">// 错误时打印日志</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 清理函数：组件卸载时取消请求</span></span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>();</span><br><span class="line">  &#125;, [url]); <span class="comment">// 6. 依赖项：url 变化时重新执行</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. 返回获取到的数据</span></span><br><span class="line">  <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用示例:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">MyComponent</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/users&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!data) <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>Loading...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;JSON.stringify(data)&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Vue-3-组合式-API"><a href="#Vue-3-组合式-API" class="headerlink" title="Vue 3 组合式 API"></a>Vue 3 组合式 API</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useFetch &#125; <span class="keyword">from</span> <span class="string">&quot;@vueuse/core&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; data, error &#125; = <span class="title function_">useFetch</span>(<span class="string">&quot;/api/data&quot;</span>).<span class="title function_">get</span>().<span class="title function_">json</span>();</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-高级应用场景"><a href="#5-高级应用场景" class="headerlink" title="5. 高级应用场景"></a>5. 高级应用场景</h2><h3 id="WebSocket-实时通信"><a href="#WebSocket-实时通信" class="headerlink" title="WebSocket 实时通信"></a>WebSocket 实时通信</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 WebSocket 连接，指定服务器地址</span></span><br><span class="line"><span class="keyword">const</span> socket = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="string">&quot;ws://localhost:8080&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 连接建立成功回调</span></span><br><span class="line">socket.<span class="property">onopen</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已建立&quot;</span>);</span><br><span class="line">  <span class="comment">// 连接建立后立即向服务器发送消息</span></span><br><span class="line">  socket.<span class="title function_">send</span>(<span class="string">&quot;Hello, Server!&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 收到服务器消息回调</span></span><br><span class="line">socket.<span class="property">onmessage</span> = <span class="keyword">function</span> (<span class="params">event</span>) &#123;</span><br><span class="line">  <span class="comment">// event.data 包含服务器发送的数据</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到消息:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 连接关闭回调</span></span><br><span class="line">socket.<span class="property">onclose</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;连接已关闭&quot;</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>技术</category>
+        <category>前端</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>基础知识</tag>
+        <tag>浏览器-请求对象</tag>
+      </tags>
   </entry>
   <entry>
     <title>浏览器多页面通信方案</title>
